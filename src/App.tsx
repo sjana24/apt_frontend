@@ -16,6 +16,18 @@ import NotFound from "./pages/NotFound";
 
 // Layouts
 import DashboardLayout from "./layouts/DashboardLayout";
+import Degrees from "./pages/Admin/Degrees";
+import Modules from "./pages/Admin/Modules";
+import Assignments from "./pages/Admin/Assignments";
+import Labs from "./pages/Admin/Labs";
+import StaffPage from "./pages/Admin/Staff";
+import AdminDashboard from "./pages/Admin/Dashboard";
+import AdminDegrees from "./pages/Admin/Degrees";
+import AdminModules from "./pages/Admin/Modules";
+import AdminLabs from "./pages/Admin/Labs";
+import AdminStaffPage from "./pages/Admin/Staff";
+import AdminAssignments from "./pages/Admin/Assignments";
+import { AdminDashboardLayout } from "./components/adminComponents/layout/DashboardLayout";
 
 const queryClient = new QueryClient();
 
@@ -44,7 +56,18 @@ const App = () => (
           
           {/* Catch-all */}
           <Route path="*" element={<NotFound />} />
+
+            <Route path="abc" element={<AdminDashboardLayout />}>
+        <Route index element={<AdminDashboard />} />
+        <Route path="abc/degrees" element={<AdminDegrees />} />
+        <Route path="abc/modules" element={<AdminModules />} />
+        <Route path="abc/labs" element={<AdminLabs />} />
+        <Route path="abc/staff" element={<AdminStaffPage />} />
+        <Route path="abc/assignments" element={<AdminAssignments />} />
+      </Route>
+
         </Routes>
+
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>

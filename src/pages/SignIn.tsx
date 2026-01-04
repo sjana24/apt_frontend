@@ -1,17 +1,20 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigation } from 'react-router-dom';
 import { Eye, EyeOff, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import Navbar from '@/components/Navbar';
+import authService from '@/services/auth/auth.service';
+// import { useNavigation } from 'react-router-dom';
 
 import campusBuildingImg from '@/assets/campus-building.jpg';
 
 type UserRole = 'student' | 'lecturer' | 'admin';
 
 const SignIn = () => {
+  // const navigate = useNavigation();
   const [showPassword, setShowPassword] = useState(false);
   const [selectedRole, setSelectedRole] = useState<UserRole>('student');
   const [formData, setFormData] = useState({
@@ -20,28 +23,35 @@ const SignIn = () => {
     rememberMe: false,
   });
 
-  const roles: { value: UserRole; label: string }[] = [
-    { value: 'student', label: 'Student' },
-    { value: 'lecturer', label: 'Lecturer' },
-    { value: 'admin', label: 'Admin' },
-  ];
-
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    try {
+      // Pass the formData object to your service
+      const response = await authService.login(formData);
+
+      console.log("Login Success:", response);
+
+      // Navigate to dashboard only after successful login
+      // navigate('/dashboard');
+      window.location.href = '/dashboard';
+    } catch (error) {
+      alert("Login failed! Please check your credentials.");
+    }
+
     // Navigate to dashboard
-    window.location.href = '/dashboard';
+    // window.location.href = '/dashboard';
   };
 
   return (
     <div className="min-h-screen bg-background">
       <Navbar variant="auth" />
-      
+
       <div className="container mx-auto flex min-h-[calc(100vh-64px)] items-center justify-center px-4 py-12">
         <div className="grid w-full max-w-5xl gap-8 lg:grid-cols-2">
           {/* Left Panel - Image */}
           <div className="relative hidden overflow-hidden rounded-2xl lg:block">
-            <img 
-              src={campusBuildingImg} 
+            <img
+              src={campusBuildingImg}
               alt="University campus building"
               className="h-full w-full object-cover"
             />
@@ -65,32 +75,31 @@ const SignIn = () => {
 
             <form onSubmit={handleSubmit} className="space-y-6">
               <div>
-                <Label className="mb-2 block text-sm font-medium">I am a...</Label>
+                {/* <Label className="mb-2 block text-sm font-medium">I am a...</Label>
                 <div className="grid grid-cols-3 gap-2 rounded-lg border border-border p-1">
                   {roles.map((role) => (
                     <button
                       key={role.value}
                       type="button"
                       onClick={() => setSelectedRole(role.value)}
-                      className={`rounded-md px-4 py-2 text-sm font-medium transition-colors ${
-                        selectedRole === role.value
+                      className={`rounded-md px-4 py-2 text-sm font-medium transition-colors ${selectedRole === role.value
                           ? 'bg-primary/10 text-primary'
                           : 'text-muted-foreground hover:bg-muted'
-                      }`}
+                        }`}
                     >
                       {role.label}
                     </button>
                   ))}
-                </div>
+                </div> */}
               </div>
 
               <div>
-                <Label htmlFor="email">University ID or Email</Label>
+                <Label htmlFor="email"> Email</Label>
                 <div className="relative mt-1.5">
                   <Input
                     id="email"
                     type="text"
-                    placeholder="e.g. 12345678 or name@uni.edu"
+                    placeholder="e.g. abc@gmail.com"
                     value={formData.email}
                     onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                     className="pr-10"
@@ -122,8 +131,8 @@ const SignIn = () => {
 
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <Checkbox 
-                    id="remember" 
+                  <Checkbox
+                    id="remember"
                     checked={formData.rememberMe}
                     onCheckedChange={(checked) => setFormData({ ...formData, rememberMe: checked as boolean })}
                   />

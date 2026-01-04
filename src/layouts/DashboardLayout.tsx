@@ -15,7 +15,7 @@ const DashboardLayout = () => {
         {/* Top Header */}
         <header className="flex h-16 items-center justify-between border-b border-border bg-card px-6">
           <div>
-            <h1 className="text-xl font-semibold text-foreground">Dashboard</h1>
+            <h1 className="text-xl font-semibold text-foreground">Dashsboard</h1>
             <p className="text-sm text-muted-foreground">Welcome back, {currentUser.name}</p>
           </div>
 

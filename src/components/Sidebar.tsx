@@ -11,9 +11,11 @@ import { cn } from '@/lib/utils';
 
 const menuItems = [
   { icon: LayoutDashboard, label: 'Dashboard', path: '/dashboard' },
-  { icon: School, label: 'Classrooms', path: '/spaces?type=classroom' },
-  { icon: FlaskConical, label: 'Laboratories', path: '/spaces?type=laboratory' },
-  { icon: CalendarDays, label: 'My Bookings', path: '/bookings' },
+  { icon: School, label: 'Lecture Hall', path: '/spaces?type=classroom' },
+  { icon: FlaskConical, label: 'Staffs', path: '/spaces?type=laboratory' },
+  { icon: CalendarDays, label: 'Degreee Program', path: '/bookings' },
+  { icon: CalendarDays, label: 'Course Module', path: '/bookings' },
+  { icon: CalendarDays, label: 'Degreee Program', path: '/bookings' },
 ];
 
 const Sidebar = () => {
