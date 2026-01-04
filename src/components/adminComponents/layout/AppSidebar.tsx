@@ -21,11 +21,11 @@ import {
 } from "@/components/ui/sidebar";
 
 const navigationItems = [
-  { title: "Dashboard", url: "/abc", icon: LayoutDashboard },
-  { title: "Staff", url: "abc/staff", icon: Users },
-  { title: "Degrees", url: "abc/degrees", icon: GraduationCap },
-  { title: "Labs", url: "abc/labs", icon: FlaskConical },
-  { title: "Modules", url: "abc/modules", icon: BookOpen },
+  { title: "Dashboard", url: "/admin", icon: LayoutDashboard },
+  { title: "Staff", url: "admin/staff", icon: Users },
+  { title: "Degrees", url: "admin/degrees", icon: GraduationCap },
+  { title: "Labs", url: "admin/labs", icon: FlaskConical },
+  { title: "Modules", url: "admin/modules", icon: BookOpen },
 
 
 ];

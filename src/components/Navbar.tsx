@@ -42,9 +42,9 @@ const Navbar = ({ variant = 'landing' }: NavbarProps) => {
         
         <div className="hidden items-center gap-8 md:flex">
           <Link to="/" className="nav-link">Home</Link>
-          <Link to="/timetable" className="nav-link">Timetable</Link>
-          <Link to="/spaces" className="nav-link">Features</Link>
-          <Link to="/contact" className="nav-link">Contact</Link>
+          {/* <Link to="/timetable" className="nav-link">Timetable</Link> */}
+          {/* <Link to="/spaces" className="nav-link">Features</Link> */}
+          {/* <Link to="/contact" className="nav-link">Contact</Link> */}
         </div>
 
         <Button variant="outline" asChild>

@@ -7,39 +7,58 @@ import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import Navbar from '@/components/Navbar';
 import authService from '@/services/auth/auth.service';
-// import { useNavigation } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
+
 
 import campusBuildingImg from '@/assets/campus-building.jpg';
 
 type UserRole = 'student' | 'lecturer' | 'admin';
 
 const SignIn = () => {
-  // const navigate = useNavigation();
+  const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
   const [selectedRole, setSelectedRole] = useState<UserRole>('student');
+  const [loading, setLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     email: '',
     password: '',
     rememberMe: false,
   });
 
+  const roleRoutes = {
+    'admin': '/admin',
+    'staff': '/dashboard',
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setLoading(true);
+    setErrorMessage(null); // Reset errors on new attempt
+
     try {
-      // Pass the formData object to your service
       const response = await authService.login(formData);
 
-      console.log("Login Success:", response);
+      // 1. Success Feedback
+      setSuccessMessage("Login Successful! Redirecting...");
 
-      // Navigate to dashboard only after successful login
-      // navigate('/dashboard');
-      window.location.href = '/dashboard';
-    } catch (error) {
-      alert("Login failed! Please check your credentials.");
+      // 2. Extract Data
+      const role = response.user.user.role;
+      const targetRoute = roleRoutes[role] || '/login';
+
+      // 3. Delay navigation slightly so user can see the success message
+      setTimeout(() => {
+        navigate(targetRoute);
+      }, 1500);
+
+    } catch (error: any) {
+      // 4. Handle specific error messages from Django
+      const errorDetail = error.response?.data?.error || "Invalid email or password.";
+      setErrorMessage(errorDetail);
+    } finally {
+      setLoading(false);
     }
-
-    // Navigate to dashboard
-    // window.location.href = '/dashboard';
   };
 
   return (
@@ -75,6 +94,9 @@ const SignIn = () => {
 
             <form onSubmit={handleSubmit} className="space-y-6">
               <div>
+                {/* Display messages to the user */}
+                {errorMessage && <div className="error-banner">{errorMessage}</div>}
+                {successMessage && <div className="success-banner">{successMessage}</div>}
                 {/* <Label className="mb-2 block text-sm font-medium">I am a...</Label>
                 <div className="grid grid-cols-3 gap-2 rounded-lg border border-border p-1">
                   {roles.map((role) => (
@@ -145,8 +167,9 @@ const SignIn = () => {
                 </Link>
               </div>
 
-              <Button type="submit" className="w-full" size="lg">
-                Sign In
+              <Button type="submit" disabled={loading} className="w-full" size="lg">
+                {/* Sign In */}
+                {loading ? "Verifying..." : "Login"}
               </Button>
             </form>
 

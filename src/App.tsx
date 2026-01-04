@@ -50,20 +50,20 @@ const App = () => (
           </Route>
           
           {/* Room Booking Routes */}
-          <Route path="/spaces" element={<Spaces />} />
-          <Route path="/room/:id" element={<RoomAvailability />} />
-          <Route path="/bookings" element={<Spaces />} />
+          {/* <Route path="/spaces" element={<Spaces />} /> */}
+          {/* <Route path="/room/:id" element={<RoomAvailability />} /> */}
+          {/* <Route path="/bookings" element={<Spaces />} /> */}
           
           {/* Catch-all */}
           <Route path="*" element={<NotFound />} />
 
-            <Route path="abc" element={<AdminDashboardLayout />}>
+            <Route path="admin" element={<AdminDashboardLayout />}>
         <Route index element={<AdminDashboard />} />
-        <Route path="abc/degrees" element={<AdminDegrees />} />
-        <Route path="abc/modules" element={<AdminModules />} />
-        <Route path="abc/labs" element={<AdminLabs />} />
-        <Route path="abc/staff" element={<AdminStaffPage />} />
-        <Route path="abc/assignments" element={<AdminAssignments />} />
+        <Route path="admin/degrees" element={<AdminDegrees />} />
+        <Route path="admin/modules" element={<AdminModules />} />
+        <Route path="admin/labs" element={<AdminLabs />} />
+        <Route path="admin/staff" element={<AdminStaffPage />} />
+        <Route path="admin/assignments" element={<AdminAssignments />} />
       </Route>
 
         </Routes>
