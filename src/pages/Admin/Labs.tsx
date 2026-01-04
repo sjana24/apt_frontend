@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { PageHeader } from "@/components/adminComponents/shared/PageHeader";
 import { DataTable, Column } from "@/components/adminComponents/shared/DataTable";
 import { mockLabs } from "@/data/mockDataAdmin";
@@ -18,9 +18,12 @@ import { Label } from "@/components/ui/label";
 import { Pencil, Trash2 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { format } from "date-fns";
+import labService from "@/services/admin/lab.service";
 
 export default function AdminLabs() {
-  const [labs, setLabs] = useState<Lab[]>(mockLabs);
+  const [labs, setLabs] = useState<Lab[]>([]);
+const [loading, setLoading] = useState(false);
+  // const [labs, setLabs] = useState<Lab[]>(mockLabs);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [selectedLab, setSelectedLab] = useState<Lab | null>(null);
@@ -29,7 +32,100 @@ export default function AdminLabs() {
     capacity: 30,
   });
 
-  const handleCreate = () => {
+  useEffect(() => {
+  const fetchLabs = async () => {
+    setLoading(true);
+    try {
+      const data = await labService.getAllLabs();
+      setLabs(data);
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description:
+          error.response?.data?.message || "Failed to load labs",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  fetchLabs();
+}, []);
+
+const handleCreate = async () => {
+  try {
+    const response = await labService.createLab(formData);
+
+    setLabs((prev) => [...prev, response]);
+
+    toast({
+      title: "Lab created",
+      description: `${response.name} has been added successfully.`,
+    });
+
+    setIsCreateOpen(false);
+    resetForm();
+  } catch (error: any) {
+    toast({
+      title: "Error",
+      description:
+        error.response?.data?.message || "Failed to create lab",
+      variant: "destructive",
+    });
+  }
+};
+
+const handleEdit = async () => {
+  if (!selectedLab) return;
+
+  try {
+    const response = await labService.updateLab(selectedLab.id, formData);
+
+    setLabs((prev) =>
+      prev.map((l) => (l.id === response.id ? response : l))
+    );
+
+    toast({
+      title: "Lab updated",
+      description: "The lab has been updated successfully.",
+    });
+
+    setIsEditOpen(false);
+    resetForm();
+  } catch (error: any) {
+    toast({
+      title: "Error",
+      description:
+        error.response?.data?.message || "Failed to update lab",
+      variant: "destructive",
+    });
+  }
+};
+
+const handleDelete = async (lab: Lab) => {
+  try {
+    await labService.deleteLab(lab.id);
+
+    setLabs((prev) => prev.filter((l) => l.id !== lab.id));
+
+    toast({
+      title: "Lab deleted",
+      description: `${lab.name} has been removed.`,
+      variant: "destructive",
+    });
+  } catch (error: any) {
+    toast({
+      title: "Error",
+      description:
+        error.response?.data?.message || "Failed to delete lab",
+      variant: "destructive",
+    });
+  }
+};
+
+
+  const handleCreate1 = () => {
     const newLab: Lab = {
       id: Math.max(...labs.map((l) => l.id), 0) + 1,
       ...formData,
@@ -45,7 +141,7 @@ export default function AdminLabs() {
     });
   };
 
-  const handleEdit = () => {
+  const handleEdit1 = () => {
     if (!selectedLab) return;
     setLabs(
       labs.map((l) =>
@@ -62,7 +158,7 @@ export default function AdminLabs() {
     });
   };
 
-  const handleDelete = (lab: Lab) => {
+  const handleDelete1 = (lab: Lab) => {
     setLabs(labs.filter((l) => l.id !== lab.id));
     toast({
       title: "Lab deleted",

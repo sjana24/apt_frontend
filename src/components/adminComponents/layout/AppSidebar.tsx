@@ -22,11 +22,12 @@ import {
 
 const navigationItems = [
   { title: "Dashboard", url: "/abc", icon: LayoutDashboard },
-  { title: "Degrees", url: "abc/degrees", icon: GraduationCap },
-  { title: "Modules", url: "abc/modules", icon: BookOpen },
-  { title: "Labs", url: "abc/labs", icon: FlaskConical },
   { title: "Staff", url: "abc/staff", icon: Users },
-  { title: "Assignments", url: "abc/assignments", icon: UserCheck },
+  { title: "Degrees", url: "abc/degrees", icon: GraduationCap },
+  { title: "Labs", url: "abc/labs", icon: FlaskConical },
+  { title: "Modules", url: "abc/modules", icon: BookOpen },
+
+
 ];
 
 export function AdminAppSidebar() {
@@ -35,7 +36,7 @@ export function AdminAppSidebar() {
   const isCollapsed = state === "collapsed";
 
   const isActive = (path: string) => {
-    if (path === "/") return location.pathname === "/";
+    if (path === "/abc") return location.pathname === "/";
     return location.pathname.startsWith(path);
   };
 
@@ -76,10 +77,9 @@ export function AdminAppSidebar() {
                     <NavLink
                       to={item.url}
                       className={({ isActive: active }) =>
-                        `flex items-center gap-3 px-3 py-2 rounded-md transition-colors ${
-                          active
-                            ? "bg-sidebar-accent text-sidebar-accent-foreground"
-                            : "text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent/50"
+                        `flex items-center gap-3 px-3 py-2 rounded-md transition-colors ${active
+                          ? "bg-sidebar-accent text-sidebar-accent-foreground"
+                          : "text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent/50"
                         }`
                       }
                     >

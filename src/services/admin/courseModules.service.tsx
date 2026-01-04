@@ -4,7 +4,7 @@ const moduleService = {
     // 1. GET ALL MODULES
     getAllModules: async () => {
         try {
-            const response = await axiosInstance.get('modules/');
+            const response = await axiosInstance.get('main/course');
             return response.data;
         } catch (error) {
             console.error("Error fetching modules:", error.response?.data || error.message);
@@ -15,7 +15,7 @@ const moduleService = {
     // 2. GET SINGLE MODULE BY ID
     getModuleById: async (id) => {
         try {
-            const response = await axiosInstance.get(`modules/${id}/`);
+            const response = await axiosInstance.get(`main/course/${id}`);
             return response.data;
         } catch (error) {
             console.error(`Error fetching module ${id}:`, error.response?.data || error.message);
@@ -27,7 +27,7 @@ const moduleService = {
     createModule: async (moduleData) => {
         try {
             // moduleData should be { module_name, module_code, credit }
-            const response = await axiosInstance.post('modules/', moduleData);
+            const response = await axiosInstance.post('main/course', moduleData);
             return response.data;
         } catch (error) {
             console.error("Error creating module:", error.response?.data || error.message);
@@ -39,7 +39,7 @@ const moduleService = {
     updateModule: async (id, updatedData) => {
         try {
             // We use the ID in the URL and pass the new data in the body
-            const response = await axiosInstance.put(`modules/${id}/`, updatedData);
+            const response = await axiosInstance.put(`main/course/${id}`, updatedData);
             return response.data;
         } catch (error) {
             console.error(`Error updating module ${id}:`, error.response?.data || error.message);
@@ -50,7 +50,7 @@ const moduleService = {
     // 5. DELETE MODULE
     deleteModule: async (id) => {
         try {
-            const response = await axiosInstance.delete(`modules/${id}/`);
+            const response = await axiosInstance.delete(`main/course/${id}`);
             return response.data; // Usually 204 No Content
         } catch (error) {
             console.error(`Error deleting module ${id}:`, error.response?.data || error.message);

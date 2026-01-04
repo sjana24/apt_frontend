@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { PageHeader } from "@/components/adminComponents/shared/PageHeader";
 import { DataTable, Column } from "@/components/adminComponents/shared/DataTable";
 import { mockDegrees, mockModules } from "@/data/mockDataAdmin";
@@ -24,9 +24,13 @@ import {
 } from "@/components/ui/select";
 import { Pencil, Trash2, Eye, ChevronRight, BookOpen } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
+import degreeService from "@/services/admin/degree.service";
 
 export default function AdminDegrees() {
-  const [degrees, setDegrees] = useState<Degree[]>(mockDegrees);
+  const [degrees, setDegrees] = useState<Degree[]>([]);
+const [loading, setLoading] = useState(false);
+
+  // const [degrees, setDegrees] = useState<Degree[]>(mockDegrees);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [isExplorerOpen, setIsExplorerOpen] = useState(false);
@@ -37,49 +41,113 @@ export default function AdminDegrees() {
     semester: "",
     academicYear: new Date().getFullYear(),
   });
+  useEffect(() => {
+  const fetchDegrees = async () => {
+    setLoading(true);
+
+    try {
+      const data = await degreeService.getAllDegrees();
+      setDegrees(data);
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description:
+          error.response?.data?.message || "Failed to fetch degrees",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  fetchDegrees();
+}, []);
+
 
   // Get modules for selected degree
   const degreeModules = selectedDegree
     ? mockModules.filter((m) => m.degree === selectedDegree.id)
     : [];
 
-  const handleCreate = () => {
-    const newDegree: Degree = {
-      id: Math.max(...degrees.map((d) => d.id)) + 1,
-      ...formData,
+  const handleCreate1 = async(e) => {
+console.log("Save clicked", formData)
     };
-    setDegrees([...degrees, newDegree]);
-    setIsCreateOpen(false);
-    resetForm();
+    const handleCreate = async (e?: React.MouseEvent) => {
+  e?.preventDefault();
+
+  try {
+    const response = await degreeService.createDegree(formData);
+
+    setDegrees((prev) => [...prev, response]);
+
     toast({
       title: "Degree created",
-      description: `${newDegree.degreeProgram} has been added successfully.`,
+      description: `${response.degreeProgram} added successfully.`,
     });
-  };
 
-  const handleEdit = () => {
-    if (!selectedDegree) return;
-    setDegrees(
-      degrees.map((d) =>
-        d.id === selectedDegree.id ? { ...d, ...formData } : d
-      )
+    setIsCreateOpen(false);
+  } catch (error: any) {
+    toast({
+      title: "Error",
+      description:
+        error.response?.data?.message || "Failed to create degree",
+      variant: "destructive",
+    });
+  }
+};
+
+
+const handleEdit = async () => {
+  if (!selectedDegree?.id) return;
+
+  try {
+    const response = await degreeService.updateDegree(
+      selectedDegree.id,
+      formData
     );
-    setIsEditOpen(false);
-    resetForm();
+
+    setDegrees((prev) =>
+      prev.map((d) => (d.id === response.id ? response : d))
+    );
+
     toast({
       title: "Degree updated",
-      description: "The degree has been updated successfully.",
+      description: `${response.degreeProgram} updated successfully.`,
     });
-  };
 
-  const handleDelete = (degree: Degree) => {
-    setDegrees(degrees.filter((d) => d.id !== degree.id));
+    setIsEditOpen(false);
+  } catch (error: any) {
+    toast({
+      title: "Error",
+      description:
+        error.response?.data?.message || "Failed to update degree",
+      variant: "destructive",
+    });
+  }
+};
+
+  
+  const handleDelete = async (degree: Degree) => {
+  try {
+    await degreeService.deleteDegree(degree.id);
+
+    setDegrees((prev) => prev.filter((d) => d.id !== degree.id));
+
     toast({
       title: "Degree deleted",
       description: `${degree.degreeProgram} has been removed.`,
       variant: "destructive",
     });
-  };
+  } catch (error: any) {
+    toast({
+      title: "Error",
+      description:
+        error.response?.data?.message || "Failed to delete degree",
+      variant: "destructive",
+    });
+  }
+};
+
 
   const openEdit = (degree: Degree) => {
     setSelectedDegree(degree);
@@ -149,6 +217,7 @@ export default function AdminDegrees() {
             <Pencil className="h-4 w-4" />
           </Button>
           <Button
+          type="button"
             variant="ghost"
             size="icon"
             onClick={(e) => {
@@ -270,7 +339,7 @@ export default function AdminDegrees() {
             <Button variant="outline" onClick={() => setIsCreateOpen(false)}>
               Cancel
             </Button>
-            <Button onClick={handleCreate}>Create Degree</Button>
+            <Button type="button" onClick={handleCreate}>Create Degree</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -352,7 +421,7 @@ export default function AdminDegrees() {
             <Button variant="outline" onClick={() => setIsEditOpen(false)}>
               Cancel
             </Button>
-            <Button onClick={handleEdit}>Save Changes</Button>
+            <Button type="button" onClick={handleEdit}>Save Changes</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -422,7 +491,7 @@ export default function AdminDegrees() {
           )}
 
           <DialogFooter>
-            <Button variant="outline" onClick={() => setIsExplorerOpen(false)}>
+            <Button type="button" variant="outline" onClick={() => setIsExplorerOpen(false)}>
               Close
             </Button>
           </DialogFooter>
