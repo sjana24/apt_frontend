@@ -8,10 +8,12 @@ import { Calendar } from "@/components/ui/calendar"; // Assuming shadcn/ui
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
+import studentService from "@/services/common/student.service"
 
 
 import studyRoomImg from '@/assets/study-room.jpg';
 import { useState } from 'react';
+import { getWeekRange } from '@/middleware/getWeek';
 
 const features = [
   {
@@ -31,6 +33,75 @@ const features = [
   },
 ];
 
+export interface TimetableRow {
+  time: string
+  1: string
+  2: string
+  3: string
+  4: string
+  5: string
+}
+
+export const mockTimetable: TimetableRow[] = [
+  {
+    time: "08:00 - 09:00",
+    1: "-",
+    2: "Library",
+    3: "CST 372-3 (E3)",
+    4: "CST 381-2 (E3)",
+    5: "CST 371-2 (G6)"
+  },
+  {
+    time: "09:00 - 10:00",
+    1: "CST 327-2 (A1)",
+    2: "Library",
+    3: "CST 372-3 (E3)",
+    4: "CST 381-2 (E3)",
+    5: "CST 371-2 (G6)"
+  },
+  {
+    time: "10:00 - 11:00",
+    1: "CST 381-2 (G5)",
+    2: "CST 345-2 (E3)",
+    3: "CST 328-2 (G5)",
+    4: "CST 384-2 (MCL)",
+    5: "CST 372-3 (D1)"
+  },
+  {
+    time: "11:00 - 12:00",
+    1: "CST 381-2 (G5)",
+    2: "CST 345-2 (E3)",
+    3: "CST 333-2 (G6)",
+    4: "CST 384-2 (MCL)",
+    5: "CST 372-3 (D1)"
+  },
+  {
+    time: "12:00 - 13:00",
+    1: "CST 344-2 (D1)",
+    2: "",
+    3: "CST 333-2 (G6)",
+    4: "CST 384-2 (MCL)",
+    5: "Student Activities"
+  },
+  {
+    time: "14:00 - 15:00",
+    1: "CST 315-2 (G6)",
+    2: "CST 328-2 (E3)",
+    3: "CST 345-2 (E3)",
+    4: "ESD 311-1 (MLT)",
+    5: "CST 315-2 (G6)"
+  },
+  {
+    time: "15:00 - 16:00",
+    1: "",
+    2: "CST 328-2 (E3)",
+    3: "CST 345-2 (E3)",
+    4: "",
+    5: "CST 315-2 (G6)"
+  }
+]
+
+
 
 
 const Landing = () => {
@@ -42,24 +113,36 @@ const Landing = () => {
   });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [timetable, setTimeTable] = useState(false);
+
+  const handleDateSelect = (date) => {
+  const weekRange = getWeekRange(date);
+  return weekRange;
+};
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
+    const data=formData.date ? format(formData.date, 'yyyy-MM-dd') : null
+
+    const dateRange=await handleDateSelect(data);
+    console.log("xxxxxxxxxx",dateRange)
 
     // This is the object you send to your Django backend
     const payload = {
       degree: formData.degree,
       year: formData.year,
       semester: formData.semester,
+      dateRange: dateRange,
       date: formData.date ? format(formData.date, 'yyyy-MM-dd') : null,
     };
 
     console.log("Sending to Backend:", payload);
+    setTimeTable(true)
 
     try {
-      // Example API call
-      // const response = await axios.post('/api/timetable/', payload);
+      const response = studentService.getDegreeTimeTable(payload);
+      
       alert("Fetching Timetable for: " + payload.degree);
     } catch (error) {
       console.error("Error fetching timetable", error);
@@ -72,6 +155,135 @@ const Landing = () => {
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
+      { timetable ?
+      <section className="container mx-auto px-4 py-12">
+        <div className="rounded-3xl bg-card border shadow-elevated overflow-hidden">
+
+          {/* Header */}
+          <div className="p-6 border-b bg-muted">
+            <h2 className="text-2xl font-bold">Semester I Timetable (2025 / 2026)</h2>
+            <p className="text-muted-foreground">
+              Department of Computer Science & Informatics – Level 300
+            </p>
+          </div>
+
+          {/* Timetable Grid */}
+          <div className="overflow-x-auto">
+            <table className="w-full border-collapse">
+              <thead>
+                <tr className="bg-secondary text-secondary-foreground">
+                  <th className="border p-3 text-left">Time</th>
+                  <th className="border p-3">Monday</th>
+                  <th className="border p-3">Tuesday</th>
+                  <th className="border p-3">Wednesday</th>
+                  <th className="border p-3">Thursday</th>
+                  <th className="border p-3">Friday</th>
+                </tr>
+              </thead>
+
+              {/* <tbody className="text-sm">
+                {[
+                  {
+                    time: "08:00 - 09:00",
+                    mon: "CST 327-2 (A1)",
+                    tue: "Library",
+                    wed: "CST 372-3 (E3)",
+                    thu: "CST 381-2 (E3)",
+                    fri: "CST 371-2 (G6)"
+                  },
+                  {
+                    time: "09:00 - 10:00",
+                    mon: "CST 327-2 (A1)",
+                    tue: "Library",
+                    wed: "CST 372-3 (E3)",
+                    thu: "CST 381-2 (E3)",
+                    fri: "CST 371-2 (G6)"
+                  },
+                  {
+                    time: "10:00 - 11:00",
+                    mon: "CST 381-2 (G5)",
+                    tue: "CST 345-2 (E3)",
+                    wed: "CST 328-2 (G5)",
+                    thu: "CST 384-2 (MCL)",
+                    fri: "CST 372-3 (D1)"
+                  },
+                  {
+                    time: "11:00 - 12:00",
+                    mon: "CST 381-2 (G5)",
+                    tue: "CST 345-2 (E3)",
+                    wed: "CST 333-2 (G6)",
+                    thu: "CST 384-2 (MCL)",
+                    fri: "CST 372-3 (D1)"
+                  },
+                  {
+                    time: "12:00 - 13:00",
+                    mon: "CST 344-2 (D1)",
+                    tue: "",
+                    wed: "CST 333-2 (G6)",
+                    thu: "CST 384-2 (MCL)",
+                    fri: "Student Activities"
+                  },
+                  {
+                    time: "14:00 - 15:00",
+                    mon: "CST 315-2 (G6)",
+                    tue: "CST 328-2 (E3)",
+                    wed: "CST 345-2 (E3)",
+                    thu: "ESD 311-1 (MLT)",
+                    fri: "CST 315-2 (G6)"
+                  },
+                  {
+                    time: "15:00 - 16:00",
+                    mon: "",
+                    tue: "CST 328-2 (E3)",
+                    wed: "CST 345-2 (E3)",
+                    thu: "",
+                    fri: "CST 315-2 (G6)"
+                  }
+                ].map((row, index) => (
+                  <tr key={index} className="hover:bg-muted/50">
+                    <td className="border p-3 font-medium">{row.time}</td>
+                    {[row.mon, row.tue, row.wed, row.thu, row.fri].map(
+                      (cell, i) => (
+                        <td key={i} className="border p-3 text-center">
+                          {cell ? (
+                            <span className="inline-block rounded-md bg-primary/10 text-primary px-2 py-1">
+                              {cell}
+                            </span>
+                          ) : (
+                            "-"
+                          )}
+                        </td>
+                      )
+                    )}
+                  </tr>
+                ))}
+              </tbody> */}
+
+              <tbody className="text-sm">
+  {mockTimetable.map((row, index) => (
+    <tr key={index} className="hover:bg-muted/50">
+      <td className="border p-3 font-medium">{row.time}</td>
+
+      {[row[1], row[2], row[3], row[4], row[5]].map((cell, i) => (
+        <td key={i} className="border p-3 text-center">
+          {cell ? (
+            <span className="inline-block rounded-md bg-primary/10 text-primary px-2 py-1">
+              {cell}
+            </span>
+          ) : (
+            <span className="text-muted-foreground">-</span>
+          )}
+        </td>
+      ))}
+    </tr>
+  ))}
+</tbody>
+            </table>
+          </div>
+        </div>
+      </section> : null
+}
+
 
       <section className="container mx-auto px-4 py-12">
         <div className="rounded-3xl bg-card border shadow-elevated overflow-hidden">
