@@ -28,6 +28,9 @@ import AdminLabs from "./pages/Admin/Labs";
 import AdminStaffPage from "./pages/Admin/Staff";
 import AdminAssignments from "./pages/Admin/Assignments";
 import { AdminDashboardLayout } from "./components/adminComponents/layout/DashboardLayout";
+import StaffLabs from "./pages/Staff/Labs";
+import StaffDegrees from "./pages/Staff/degreeStaff";
+import StaffModules from "./pages/Staff/courseStaff";
 
 const queryClient = new QueryClient();
 
@@ -45,8 +48,11 @@ const App = () => (
           <Route path="/register" element={<Register />} />
           
           {/* Dashboard Routes */}
-          <Route path="/dashboard" element={<DashboardLayout />}>
+          <Route path="/dashboard/" element={<DashboardLayout />}>
             <Route index element={<Dashboard />} />
+            <Route path="staff/lab" element={<StaffLabs />} />
+            <Route path="staff/degree" element={<StaffDegrees />} />
+            <Route path="staff/course" element={<StaffModules />} />
           </Route>
           
           {/* Room Booking Routes */}

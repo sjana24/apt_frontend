@@ -1,3 +1,4 @@
+import axios from 'axios';
 import axiosInstance from '../../middleware/axiosInstance';
 
 const authService = {
@@ -15,7 +16,7 @@ const authService = {
     // 2. Login Function
     login: async (credentials) => {
         try {
-            const response = await axiosInstance.post('/auth/token', credentials);
+            const response = await axios.post('http://localhost:8000/auth/token', credentials);
             // Assuming your backend returns { access: "...", refresh: "..." }
             // console.log("xxxx",response.data.user.access);
             if (response.data.user.access) {

@@ -5,7 +5,7 @@ const staffService = {
     // Maps to backend: def get(self, request)
     getAllStaff: async () => {
         try {
-            const response = await axiosInstance.get('staff/');
+            const response = await axiosInstance.get('main/staffs');
             return response.data;
         } catch (error) {
             console.error("Error fetching staff list:", error.response?.data || error.message);

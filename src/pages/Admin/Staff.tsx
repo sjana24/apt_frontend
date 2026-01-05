@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { PageHeader } from "@/components/adminComponents/shared/PageHeader";
 import { DataTable, Column } from "@/components/adminComponents/shared/DataTable";
 // import { PageHeader } from "@/components/shared/PageHeader";
@@ -28,6 +28,7 @@ import { Switch } from "@/components/ui/switch";
 import { Pencil, Trash2 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { format } from "date-fns";
+import staffService from "@/services/admin/staff.service";
 
 const roleLabels: Record<Staff["role"], string> = {
   admin: "Admin",
@@ -44,7 +45,9 @@ const roleColors: Record<Staff["role"], "default" | "secondary" | "outline"> = {
 };
 
 export default function AdminStaffPage() {
-  const [staff, setStaff] = useState<Staff[]>(mockStaff);
+  const [staff, setStaff] = useState<Staff[]>([]);
+  const [loading, setLoading] = useState(false);
+  // const [staff, setStaff] = useState<Staff[]>(mockStaff);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [selectedStaff, setSelectedStaff] = useState<Staff | null>(null);
@@ -54,6 +57,27 @@ export default function AdminStaffPage() {
     role: "lecturer" as Staff["role"],
     is_active: true,
   });
+
+    useEffect(() => {
+  const fetchStaffs = async () => {
+    // setLoading(true);
+    try {
+      const data = await staffService.getAllStaff();
+      setStaff(data);
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description:
+          error.response?.data?.message || "Failed to load labs",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  fetchStaffs();
+}, []);
 
   const handleCreate = () => {
     const newStaff: Staff = {
@@ -134,11 +158,11 @@ export default function AdminStaffPage() {
         </Badge>
       ),
     },
-    {
-      key: "created_at",
-      header: "Joined",
-      render: (item) => format(new Date(item.created_at), "MMM d, yyyy"),
-    },
+    // {
+    //   key: "created_at",
+    //   header: "Joined",
+    //   render: (item) => format(new Date(item.created_at), "MMM d, yyyy"),
+    // },
     {
       key: "actions",
       header: "Actions",
