@@ -104,7 +104,7 @@ export const mockTimetable: TimetableRow[] = [
 
 
 
-const Landing = () => {
+export function Landing () {
   const [formData, setFormData] = useState({
     degree: "",
     year: "",

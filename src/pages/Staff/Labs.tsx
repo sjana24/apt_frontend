@@ -20,7 +20,7 @@ import { toast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 import labService from "@/services/admin/lab.service";
 
-export default function StaffLabs() {
+export  function StaffLabs() {
   const [labs, setLabs] = useState<Lab[]>([]);
 const [loading, setLoading] = useState(false);
   // const [labs, setLabs] = useState<Lab[]>(mockLabs);
@@ -125,21 +125,21 @@ const handleDelete = async (lab: Lab) => {
 };
 
 
-  const handleCreate1 = () => {
-    const newLab: Lab = {
-      id: Math.max(...labs.map((l) => l.id), 0) + 1,
-      ...formData,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-    };
-    setLabs([...labs, newLab]);
-    setIsCreateOpen(false);
-    resetForm();
-    toast({
-      title: "Lab created",
-      description: `${newLab.name} has been added successfully.`,
-    });
-  };
+  // const handleCreate1 = () => {
+  //   const newLab: Lab = {
+  //     id: Math.max(...labs.map((l) => l.id), 0) + 1,
+  //     ...formData,
+  //     created_at: new Date().toISOString(),
+  //     updated_at: new Date().toISOString(),
+  //   };
+  //   setLabs([...labs, newLab]);
+  //   setIsCreateOpen(false);
+  //   resetForm();
+  //   toast({
+  //     title: "Lab created",
+  //     description: `${newLab.name} has been added successfully.`,
+  //   });
+  // };
 
   const handleEdit1 = () => {
     if (!selectedLab) return;

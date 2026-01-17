@@ -20,7 +20,7 @@ import { format } from "date-fns";
 
 import moduleService from "@/services/admin/courseModules.service";
 
-export default function AdminModules() {
+export  function AdminModules() {
   const [modules, setModules] = useState<CourseModule[]>([]);
   const [loading, setLoading] = useState(false);
   

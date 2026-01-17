@@ -28,7 +28,7 @@ import { format } from "date-fns";
 import moduleService from "@/services/admin/courseModules.service";
 // import degreeService from "@/services/degreeService";
 
-export default function StaffModules() {
+export  function StaffModules() {
   const [modules, setModules] = useState<CourseModule[]>([]);
   const [degrees, setDegrees] = useState<Degree[]>([]);
   const [loading, setLoading] = useState(false);

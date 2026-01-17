@@ -26,7 +26,7 @@ import { Pencil, Trash2, Eye, ChevronRight, BookOpen } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import degreeService from "@/services/admin/degree.service";
 
-export default function AdminDegrees() {
+export  function AdminDegrees() {
   const [degrees, setDegrees] = useState<Degree[]>([]);
 const [loading, setLoading] = useState(false);
 

@@ -96,7 +96,7 @@ export const mockTimetable: TimetableRow[] = [
 ]
 
 
-export default function StaffDegrees() {
+export  function StaffDegrees() {
     const [degrees, setDegrees] = useState<Degree[]>([]);
     const [loading, setLoading] = useState(false);
 

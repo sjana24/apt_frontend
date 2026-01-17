@@ -5,7 +5,7 @@ import UpcomingEvents from '@/components/UpcomingEvents';
 import MiniCalendar from '@/components/MiniCalendar';
 import { dashboardStats, scheduleEvents, upcomingEvents } from '@/data/mockData';
 
-const Dashboard = () => {
+export function Dashboard ()  {
   return (
     <div className="space-y-6">
       <p>dsfdsf</p>
@@ -74,4 +74,4 @@ const Dashboard = () => {
   );
 };
 
-export default Dashboard;
+// export function Dashboard;

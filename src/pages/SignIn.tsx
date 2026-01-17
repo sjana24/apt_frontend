@@ -14,7 +14,7 @@ import campusBuildingImg from '@/assets/campus-building.jpg';
 
 type UserRole = 'student' | 'lecturer' | 'admin';
 
-const SignIn = () => {
+export function SignIn () {
   const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
   const [selectedRole, setSelectedRole] = useState<UserRole>('student');
@@ -189,5 +189,3 @@ const SignIn = () => {
     </div>
   );
 };
-
-export default SignIn;

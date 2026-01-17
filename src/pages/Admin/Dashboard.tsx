@@ -13,7 +13,7 @@ const recentDegreesColumns: Column<Degree>[] = [
   { key: "academicYear", header: "Academic Year" },
 ];
 
-export default function AdminDashboard() {
+export  function AdminDashboard() {
   return (
     <div className="space-y-8">
       <PageHeader
