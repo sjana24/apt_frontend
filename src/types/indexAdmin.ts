@@ -28,6 +28,7 @@ export interface CourseModule {
 // Lab types
 export interface Lab {
   id: number;
+  availability: boolean;
   name: string;
   capacity: number;
   created_at: string;
@@ -39,7 +40,7 @@ export interface Staff {
   id: number;
   email: string;
   full_name: string;
-  role: "admin" | "lecturer" | "lab_instructor" | "assistant";
+  role: "admin" | "lecturer" | "lab_instructor" | "assistant" | "staff" ;
   is_active: boolean;
   created_at: string;
 }

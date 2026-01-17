@@ -5,8 +5,9 @@ import {
   FlaskConical,
   Users,
   UserCheck,
+  LogOut,
 } from "lucide-react";
-import { NavLink, useLocation } from "react-router-dom";
+import { NavLink, useLocation, useNavigate, useNavigation } from "react-router-dom";
 import {
   Sidebar,
   SidebarContent,
@@ -18,7 +19,10 @@ import {
   SidebarMenuItem,
   SidebarHeader,
   useSidebar,
+  SidebarFooter,
 } from "@/components/ui/sidebar";
+import { toast } from "@/hooks/use-toast";
+import authService from "@/services/auth/auth.service";
 
 const navigationItems = [
   { title: "Dashboard", url: "/admin", icon: LayoutDashboard },
@@ -31,6 +35,7 @@ const navigationItems = [
 ];
 
 export function AdminAppSidebar() {
+  const navigate = useNavigate();
   const location = useLocation();
   const { state } = useSidebar();
   const isCollapsed = state === "collapsed";
@@ -38,6 +43,21 @@ export function AdminAppSidebar() {
   const isActive = (path: string) => {
     if (path === "/abc") return location.pathname === "/";
     return location.pathname.startsWith(path);
+  };
+
+  const handleLogout = async() => {
+     const response = await authService.logout();
+
+    console.log("response", response);
+
+    // 3. Show a success message
+    toast({
+      title: "Logged out",
+      description: "You have been successfully logged out.",
+    });
+
+    // 4. Redirect to login or home
+    navigate("/signin");
   };
 
   return (
@@ -93,6 +113,20 @@ export function AdminAppSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
+      <SidebarFooter className="p-2 border-t border-sidebar-border">
+        <SidebarMenu>
+          <SidebarMenuItem>
+            <SidebarMenuButton
+              onClick={handleLogout}
+              tooltip="Logout"
+              className="text-sidebar-foreground/70 hover:text-destructive hover:bg-destructive/10"
+            >
+              <LogOut className="h-4 w-4 shrink-0" />
+              {!isCollapsed && <span>Logout</span>}
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+        </SidebarMenu>
+      </SidebarFooter>
     </Sidebar>
   );
 }

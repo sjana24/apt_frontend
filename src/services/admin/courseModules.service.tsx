@@ -56,6 +56,20 @@ const moduleService = {
             console.error(`Error deleting module ${id}:`, error.response?.data || error.message);
             throw error;
         }
+    },
+    fetchFilteredData: async (searchTerm) => {
+        try {
+            // This sends a request like: /api/items/?search=yourtext
+            // const response1 = await axios.get('/api/items/', {
+            //     params: { search: searchTerm }
+            // });
+            const response = await axiosInstance.get(`main/degreeSearch`,{params: { search: searchTerm }});
+            console.log("dfdsfdf",response.data)
+            return response.data;
+        } catch (error) {
+            console.error("Error fetching data:", error);
+            throw error;
+        }
     }
 };
 

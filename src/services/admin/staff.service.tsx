@@ -5,7 +5,7 @@ const staffService = {
     // Maps to backend: def get(self, request)
     getAllStaff: async () => {
         try {
-            const response = await axiosInstance.get('main/staffs');
+            const response = await axiosInstance.get('main/staff');
             return response.data;
         } catch (error) {
             console.error("Error fetching staff list:", error.response?.data || error.message);
@@ -17,7 +17,7 @@ const staffService = {
     // Maps to backend: def get(self, request, pk)
     getStaffById: async (id) => {
         try {
-            const response = await axiosInstance.get(`staff/${id}/`);
+            const response = await axiosInstance.get(`staff/${id}`);
             return response.data;
         } catch (error) {
             console.error(`Error fetching staff member ${id}:`, error.response?.data || error.message);
@@ -30,7 +30,7 @@ const staffService = {
     // staffData: { first_name, last_name, email, department, designation }
     createStaff: async (staffData) => {
         try {
-            const response = await axiosInstance.post('staff/', staffData);
+            const response = await axiosInstance.post('main/staff', staffData);
             return response.data;
         } catch (error) {
             console.error("Error creating staff record:", error.response?.data || error.message);
@@ -42,7 +42,7 @@ const staffService = {
     // Maps to backend: def put(self, request, pk)
     updateStaff: async (id, updatedData) => {
         try {
-            const response = await axiosInstance.put(`staff/${id}/`, updatedData);
+            const response = await axiosInstance.put(`main/staff/${id}`, updatedData);
             return response.data;
         } catch (error) {
             console.error(`Error updating staff member ${id}:`, error.response?.data || error.message);

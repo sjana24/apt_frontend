@@ -5,7 +5,7 @@ const authService = {
     // 1. Signup Function
     signup: async (userData) => {
         try {
-            const response = await axiosInstance.post('main/signup/', userData);
+            const response = await axiosInstance.post('http://localhost:8000/auth/signup', userData);
             return response.data;
         } catch (error) {
             console.error("Signup Error:", error.response?.data || error.message);
@@ -18,8 +18,10 @@ const authService = {
         try {
             const response = await axios.post('http://localhost:8000/auth/token', credentials);
             // Assuming your backend returns { access: "...", refresh: "..." }
-            // console.log("xxxx",response.data.user.access);
+            console.log("xxxx",response.data.user.user.full_name);
             if (response.data.user.access) {
+                localStorage.setItem('fullname', response.data.user.user.full_name);
+                // localStorage.setItem('refresh_token', response.data.user.refresh);
                 localStorage.setItem('access_token', response.data.user.access);
                 localStorage.setItem('refresh_token', response.data.user.refresh);
             }
@@ -55,7 +57,8 @@ const authService = {
     logout: () => {
         localStorage.removeItem('access_token');
         localStorage.removeItem('refresh_token');
-        window.location.href = '/login'; // Redirect to login page
+        localStorage.clear();
+        // window.location.href = '/'; // Redirect to login page
     }
 };
 

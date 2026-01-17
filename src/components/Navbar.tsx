@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { GraduationCap } from 'lucide-react';
+import { GraduationCap, LogIn } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 interface NavbarProps {
@@ -45,11 +45,17 @@ const Navbar = ({ variant = 'landing' }: NavbarProps) => {
           {/* <Link to="/timetable" className="nav-link">Timetable</Link> */}
           {/* <Link to="/spaces" className="nav-link">Features</Link> */}
           {/* <Link to="/contact" className="nav-link">Contact</Link> */}
+          {/* <Link to="/signin"><LogIn className="mr-2 h-5 w-5" />Log In </Link> */}
         </div>
+
+ <Button variant="outline" asChild>
+           <Link to="/signin"><LogIn className="mr-2 h-5 w-5" />Log In </Link>
+        </Button>
 
         <Button variant="outline" asChild>
           <Link to="/help">Help/Support</Link>
         </Button>
+        
       </div>
     </nav>
   );

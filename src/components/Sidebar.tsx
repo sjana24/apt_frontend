@@ -1,13 +1,15 @@
-import { Link, useLocation } from 'react-router-dom';
-import { 
-  LayoutDashboard, 
-  School, 
-  FlaskConical, 
-  CalendarDays, 
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import {
+  LayoutDashboard,
+  School,
+  FlaskConical,
+  CalendarDays,
   LogOut,
-  GraduationCap 
+  GraduationCap
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import authService from '@/services/auth/auth.service';
+import { toast } from '@/hooks/use-toast';
 
 const menuItems = [
   { icon: LayoutDashboard, label: 'Dashboard', path: '/dashboard' },
@@ -18,8 +20,26 @@ const menuItems = [
   // { icon: CalendarDays, label: 'Degreee Program', path: '/bookings' },
 ];
 
+
+
 const Sidebar = () => {
+  const navigate = useNavigate();
   const location = useLocation();
+
+  const handleLogout = async () => {
+    const response = await authService.logout();
+
+    console.log("response", response);
+
+    // 3. Show a success message
+    toast({
+      title: "Logged out",
+      description: "You have been successfully logged out.",
+    });
+
+    // 4. Redirect to login or home
+    // navigate("/login");
+  };
 
   return (
     <aside className="flex h-screen w-64 flex-col border-r border-border bg-card">
@@ -32,9 +52,9 @@ const Sidebar = () => {
 
       <nav className="flex-1 space-y-1 p-4">
         {menuItems.map((item) => {
-          const isActive = location.pathname === item.path || 
+          const isActive = location.pathname === item.path ||
             (item.path.includes('?') && location.pathname === item.path.split('?')[0]);
-          
+
           return (
             <Link
               key={item.path}
@@ -54,13 +74,20 @@ const Sidebar = () => {
       </nav>
 
       <div className="border-t border-border p-4">
-        <Link
+        {/* <Link
           to="/"
           className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
         >
           <LogOut className="h-5 w-5" />
           Logout
-        </Link>
+        </Link> */}
+        <button
+          onClick={handleLogout}
+          className="w-full flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground hover:text-red-600"
+        >
+          <LogOut className="h-5 w-5" />
+          Logout
+        </button>
       </div>
     </aside>
   );
