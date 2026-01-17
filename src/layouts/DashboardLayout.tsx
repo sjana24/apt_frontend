@@ -3,10 +3,15 @@ import Sidebar from '@/components/Sidebar';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Search, Bell, Plus, ChevronDown } from 'lucide-react';
-import { currentUser } from '@/data/mockData';
+// import { currentUser } from '@/data/mockData';
 import { Link } from 'react-router-dom';
 
+
+
 const DashboardLayout = () => {
+
+const currentUser = localStorage.getItem('fullname');
+
   return (
     <div className="flex min-h-screen bg-background">
       <Sidebar />
@@ -16,7 +21,7 @@ const DashboardLayout = () => {
         <header className="flex h-16 items-center justify-between border-b border-border bg-card px-6">
           <div>
             <h1 className="text-xl font-semibold text-foreground">Dashboard</h1>
-            <p className="text-sm text-muted-foreground">Welcome back, {currentUser.name}</p>
+            <p className="text-sm text-muted-foreground">Welcome back, {currentUser}</p>
           </div>
 
           <div className="flex items-center gap-4">
@@ -44,7 +49,7 @@ const DashboardLayout = () => {
               <div className="flex h-9 w-9 items-center justify-center rounded-full bg-primary text-sm font-medium text-primary-foreground">
                 DT
               </div>
-              <span className="text-sm font-medium text-foreground">{currentUser.name}</span>
+              <span className="text-sm font-medium text-foreground">{currentUser}</span>
               <ChevronDown className="h-4 w-4 text-muted-foreground" />
             </div>
           </div>

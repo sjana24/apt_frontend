@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import Navbar from '@/components/Navbar';
 
 import studyRoomImg from '@/assets/study-room.jpg';
+import authService from '@/services/auth/auth.service';
 
 const Register = () => {
   const [showPassword, setShowPassword] = useState(false);
@@ -21,11 +22,22 @@ const Register = () => {
     agreeToTerms: false,
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Navigate to sign in
-    window.location.href = '/signin';
-  };
+
+    try {
+        const result = await authService.signup(formData);
+
+        console.log("Signup successful:", result);
+        alert("Registration successful! Please sign in.");
+        window.location.href = '/signin';
+        
+    } catch (error: any) {
+          const errorMessage = error.response?.data?.detail || "Signup failed. Please try again.";
+        alert(errorMessage);
+        console.error("Signup error:", error);
+    }
+};
 
   return (
     <div className="min-h-screen bg-background">

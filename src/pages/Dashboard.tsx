@@ -8,6 +8,7 @@ import { dashboardStats, scheduleEvents, upcomingEvents } from '@/data/mockData'
 const Dashboard = () => {
   return (
     <div className="space-y-6">
+      <p>dsfdsf</p>
       {/* Stats Grid */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <StatCard

@@ -1,47 +1,76 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigation } from 'react-router-dom';
 import { Eye, EyeOff, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import Navbar from '@/components/Navbar';
+import authService from '@/services/auth/auth.service';
+import { useNavigate } from 'react-router-dom';
+
 
 import campusBuildingImg from '@/assets/campus-building.jpg';
 
 type UserRole = 'student' | 'lecturer' | 'admin';
 
 const SignIn = () => {
+  const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
   const [selectedRole, setSelectedRole] = useState<UserRole>('student');
+  const [loading, setLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     email: '',
     password: '',
     rememberMe: false,
   });
 
-  const roles: { value: UserRole; label: string }[] = [
-    { value: 'student', label: 'Student' },
-    { value: 'lecturer', label: 'Lecturer' },
-    { value: 'admin', label: 'Admin' },
-  ];
+  const roleRoutes = {
+    'admin': '/admin',
+    'staff': '/dashboard',
+  };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Navigate to dashboard
-    window.location.href = '/dashboard';
+    setLoading(true);
+    setErrorMessage(null); // Reset errors on new attempt
+
+    try {
+      const response = await authService.login(formData);
+
+      // 1. Success Feedback
+      setSuccessMessage("Login Successful! Redirecting...");
+
+      // 2. Extract Data
+      const role = response.user.user.role;
+      const targetRoute = roleRoutes[role] || '/login';
+
+      // 3. Delay navigation slightly so user can see the success message
+      setTimeout(() => {
+        navigate(targetRoute);
+      }, 1500);
+
+    } catch (error: any) {
+      // 4. Handle specific error messages from Django
+      const errorDetail = error.response?.data?.error || "Invalid email or password.";
+      setErrorMessage(errorDetail);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
     <div className="min-h-screen bg-background">
       <Navbar variant="auth" />
-      
+
       <div className="container mx-auto flex min-h-[calc(100vh-64px)] items-center justify-center px-4 py-12">
         <div className="grid w-full max-w-5xl gap-8 lg:grid-cols-2">
           {/* Left Panel - Image */}
           <div className="relative hidden overflow-hidden rounded-2xl lg:block">
-            <img 
-              src={campusBuildingImg} 
+            <img
+              src={campusBuildingImg}
               alt="University campus building"
               className="h-full w-full object-cover"
             />
@@ -65,32 +94,34 @@ const SignIn = () => {
 
             <form onSubmit={handleSubmit} className="space-y-6">
               <div>
-                <Label className="mb-2 block text-sm font-medium">I am a...</Label>
+                {/* Display messages to the user */}
+                {errorMessage && <div className="error-banner">{errorMessage}</div>}
+                {successMessage && <div className="success-banner">{successMessage}</div>}
+                {/* <Label className="mb-2 block text-sm font-medium">I am a...</Label>
                 <div className="grid grid-cols-3 gap-2 rounded-lg border border-border p-1">
                   {roles.map((role) => (
                     <button
                       key={role.value}
                       type="button"
                       onClick={() => setSelectedRole(role.value)}
-                      className={`rounded-md px-4 py-2 text-sm font-medium transition-colors ${
-                        selectedRole === role.value
+                      className={`rounded-md px-4 py-2 text-sm font-medium transition-colors ${selectedRole === role.value
                           ? 'bg-primary/10 text-primary'
                           : 'text-muted-foreground hover:bg-muted'
-                      }`}
+                        }`}
                     >
                       {role.label}
                     </button>
                   ))}
-                </div>
+                </div> */}
               </div>
 
               <div>
-                <Label htmlFor="email">University ID or Email</Label>
+                <Label htmlFor="email"> Email</Label>
                 <div className="relative mt-1.5">
                   <Input
                     id="email"
                     type="text"
-                    placeholder="e.g. 12345678 or name@uni.edu"
+                    placeholder="e.g. abc@gmail.com"
                     value={formData.email}
                     onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                     className="pr-10"
@@ -122,8 +153,8 @@ const SignIn = () => {
 
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <Checkbox 
-                    id="remember" 
+                  <Checkbox
+                    id="remember"
                     checked={formData.rememberMe}
                     onCheckedChange={(checked) => setFormData({ ...formData, rememberMe: checked as boolean })}
                   />
@@ -136,8 +167,9 @@ const SignIn = () => {
                 </Link>
               </div>
 
-              <Button type="submit" className="w-full" size="lg">
-                Sign In
+              <Button type="submit" disabled={loading} className="w-full" size="lg">
+                {/* Sign In */}
+                {loading ? "Verifying..." : "Login"}
               </Button>
             </form>
 
