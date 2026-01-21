@@ -269,81 +269,81 @@ export function Landing() {
       setError(err.response?.data?.message || err.message || "Failed to fetch timetable data");
       
       // Fallback to mock data for testing
-      const mockWeekRange = { monday: '2026-03-09', friday: '2026-03-13' };
-      const mockSlots: TimetableSlot[] = [
-        {
-          id: 1,
-          degree_name: "BSc in Computer Science",
-          module_name: "Database Management Systems",
-          lab_name: "Computer Lab 02",
-          created_by_name: "Dr. Smith",
-          slot_date: "2026-03-10", // Tuesday
-          day_of_week: 2,
-          time_range: "09:00 - 10:00",
-          note: "Operating Systems Lab",
-          degree: 2,
-          module: 2,
-          lab: 2
-        },
-        {
-          id: 2,
-          degree_name: "BSc in Computer Science",
-          module_name: "Database Management Systems",
-          lab_name: "Computer Lab 02",
-          created_by_name: "Dr. Smith",
-          slot_date: "2026-03-10", // Tuesday
-          day_of_week: 2,
-          time_range: "11:00 - 12:00",
-          note: "Operating Systems Lab",
-          degree: 2,
-          module: 2,
-          lab: 2
-        },
-        {
-          id: 3,
-          degree_name: "BSc in Computer Science",
-          module_name: "Database Management Systems",
-          lab_name: "Computer Lab 02",
-          created_by_name: "Dr. Smith",
-          slot_date: "2026-03-12", // Thursday
-          day_of_week: 4,
-          time_range: "11:00 - 12:00",
-          note: "Operating Systems Lab",
-          degree: 2,
-          module: 2,
-          lab: 2
-        },
-        {
-          id: 4,
-          degree_name: "BSc in Computer Science",
-          module_name: "Database Management Systems",
-          lab_name: "Computer Lab 02",
-          created_by_name: "Dr. Smith",
-          slot_date: "2026-03-12", // Thursday
-          day_of_week: 4,
-          time_range: "13:00 - 14:00",
-          note: "Operating Systems Lab",
-          degree: 2,
-          module: 2,
-          lab: 2
-        }
-      ];
+      // const mockWeekRange = { monday: '2026-03-09', friday: '2026-03-13' };
+      // const mockSlots: TimetableSlot[] = [
+      //   {
+      //     id: 1,
+      //     degree_name: "BSc in Computer Science",
+      //     module_name: "Database Management Systems",
+      //     lab_name: "Computer Lab 02",
+      //     created_by_name: "Dr. Smith",
+      //     slot_date: "2026-03-10", // Tuesday
+      //     day_of_week: 2,
+      //     time_range: "09:00 - 10:00",
+      //     note: "Operating Systems Lab",
+      //     degree: 2,
+      //     module: 2,
+      //     lab: 2
+      //   },
+      //   {
+      //     id: 2,
+      //     degree_name: "BSc in Computer Science",
+      //     module_name: "Database Management Systems",
+      //     lab_name: "Computer Lab 02",
+      //     created_by_name: "Dr. Smith",
+      //     slot_date: "2026-03-10", // Tuesday
+      //     day_of_week: 2,
+      //     time_range: "11:00 - 12:00",
+      //     note: "Operating Systems Lab",
+      //     degree: 2,
+      //     module: 2,
+      //     lab: 2
+      //   },
+      //   {
+      //     id: 3,
+      //     degree_name: "BSc in Computer Science",
+      //     module_name: "Database Management Systems",
+      //     lab_name: "Computer Lab 02",
+      //     created_by_name: "Dr. Smith",
+      //     slot_date: "2026-03-12", // Thursday
+      //     day_of_week: 4,
+      //     time_range: "11:00 - 12:00",
+      //     note: "Operating Systems Lab",
+      //     degree: 2,
+      //     module: 2,
+      //     lab: 2
+      //   },
+      //   {
+      //     id: 4,
+      //     degree_name: "BSc in Computer Science",
+      //     module_name: "Database Management Systems",
+      //     lab_name: "Computer Lab 02",
+      //     created_by_name: "Dr. Smith",
+      //     slot_date: "2026-03-12", // Thursday
+      //     day_of_week: 4,
+      //     time_range: "13:00 - 14:00",
+      //     note: "Operating Systems Lab",
+      //     degree: 2,
+      //     module: 2,
+      //     lab: 2
+      //   }
+      // ];
       
-      setTimetableData(mockSlots);
-      const grid = transformDataToGrid(mockSlots, mockWeekRange);
-      setTimetableGrid(grid);
-      setSelectedWeekRange(mockWeekRange);
+      // setTimetableData(mockSlots);
+      // const grid = transformDataToGrid(mockSlots, mockWeekRange);
+      // setTimetableGrid(grid);
+      // setSelectedWeekRange(mockWeekRange);
       
-      setDebugInfo({
-        weekRange: mockWeekRange,
-        slotCount: mockSlots.length,
-        slots: mockSlots.map(s => ({
-          date: s.slot_date,
-          day: s.day_of_week,
-          time: s.time_range,
-          module: s.module_name
-        }))
-      });
+      // setDebugInfo({
+      //   weekRange: mockWeekRange,
+      //   slotCount: mockSlots.length,
+      //   slots: mockSlots.map(s => ({
+      //     date: s.slot_date,
+      //     day: s.day_of_week,
+      //     time: s.time_range,
+      //     module: s.module_name
+      //   }))
+      // });
     } finally {
       setIsSubmitting(false);
     }

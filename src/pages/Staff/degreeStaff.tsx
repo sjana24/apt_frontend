@@ -27,6 +27,8 @@ import { Pencil, Trash2, Eye, ChevronRight, BookOpen, MapPin } from "lucide-reac
 import { toast } from "@/hooks/use-toast";
 import degreeService from "@/services/admin/degree.service";
 import timeTableService from "@/services/admin/timeTable.service";
+import { SelectDateDialog } from "@/components/SelectDateDialog";
+import { getWeekRange } from "@/middleware/getWeek";
 
 export interface TimetableRow {
     time: string
@@ -101,6 +103,11 @@ export function StaffDegrees() {
     const [degrees, setDegrees] = useState<Degree[]>([]);
     const [loading, setLoading] = useState(false);
     const [erroe, setError] = useState(false);
+
+    const [isDateDialogOpen, setIsDateDialogOpen] = useState(false);
+    const [pendingDegree, setPendingDegree] = useState<Degree | null>(null);
+    const [selectedDate, setSelectedDate] = useState<string | null>(null);
+
 
     // const [degrees, setDegrees] = useState<Degree[]>(mockDegrees);
     const [isCreateOpen, setIsCreateOpen] = useState(false);
@@ -370,9 +377,34 @@ export function StaffDegrees() {
 
     const AVAILABLE_HALLS = ["A1", "E3", "G5", "G6", "D1", "MCL", "MLT", "L1", "L2"];
 
+    const handleDateConfirm = (date: string) => {
+        console.log("Selected Date:", date);
+
+        setSelectedDate(date);
+        // Convert string → Date
+    const selected = new Date(date);
+
+    // Get Monday & Friday
+    const weekRange = getWeekRange(selected);
+
+    if (weekRange) {
+        console.log("Week Start (Monday):", weekRange.monday);
+        console.log("Week End (Friday):", weekRange.friday);
+        console.log("Week End (Friday):",pendingDegree.id);
+    }
+
+        if (pendingDegree) {
+            // openExplorer(pendingDegree); // existing function
+        }
+    };
+
+
     const handleRowClick = (degree: Degree) => {
         console.log("Row Clicked Data:", degree); // Print to console
-        openExplorer(degree); // Open the explorer popup
+        // openExplorer(degree); // Open the explorer popup
+        setPendingDegree(degree);
+        setIsDateDialogOpen(true);
+
     };
 
     return (
@@ -597,6 +629,13 @@ export function StaffDegrees() {
                     </div>
                 </DialogContent>
             </Dialog>
+
+            <SelectDateDialog
+            degree={pendingDegree}
+                open={isDateDialogOpen}
+                onClose={() => setIsDateDialogOpen(false)}
+                onConfirm={handleDateConfirm}
+            />
 
 
         </div>
