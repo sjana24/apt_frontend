@@ -57,6 +57,21 @@ const moduleService = {
             throw error;
         }
     },
+
+     getAllModulesForSingleStaff: async (id:number,data) => {
+        try {
+            // main/course/staff/1?degree_id=2
+            const response = await axiosInstance.get(`main/course/staff/${id}`,{
+                params: {
+                    degree_id: data,
+                }
+            });
+            return response.data;
+        } catch (error) {
+            console.error("Error fetching modules:", error.response?.data || error.message);
+            throw error;
+        }
+    },
     fetchFilteredData: async (searchTerm) => {
         try {
             // This sends a request like: /api/items/?search=yourtext

@@ -1,48 +1,25 @@
-import {
-    Dialog,
-    DialogContent,
-    DialogFooter,
-    DialogHeader,
-    DialogTitle,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
 import { Calendar } from "@/components/ui/calendar";
-import { 
-    Calendar as CalendarIcon, 
-    Clock, 
-    AlertCircle, 
-    BookOpen,
-    ChevronLeft,
-    ChevronRight,
-    Printer,
-    Download,
-    X,
-    Menu,
-    Maximize2,
-    Minimize2,
-    RefreshCw,
-    Grid3x3,
-    Filter,
-    Building,
-    Zap,
-    TrendingUp,
-    Users,
-    CalendarDays
-} from "lucide-react";
+import { Calendar as CalendarIcon, Clock, AlertCircle, BookOpen, ChevronLeft, ChevronRight, Printer, Download, X, Menu, Maximize2, Minimize2, RefreshCw, Grid3x3, Filter, Building, Plus, Save, Trash2, Edit2 } from "lucide-react";
 import { format, parseISO, eachDayOfInterval } from "date-fns";
-import { Degree } from "@/types/indexAdmin";
+import { Degree, Lab } from "@/types/indexAdmin";
+import { CourseModule } from "@/types/indexAdmin";
 import timeTableService from "@/services/admin/timeTable.service";
+import moduleService from "@/services/admin/courseModules.service";
+import labService from "@/services/admin/lab.service";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import {
-    Sheet,
-    SheetContent,
-    SheetTrigger,
-} from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { CreateTimetableSlotData, GridCell, SelectDateDialogProps, TimetableRow, TimetableSlot } from "@/interfaces";
+import { TIME_SLOTS, DAY_COLORS } from "@/constansts";
 
 /* =========================
    Helper: Get Monday–Friday
@@ -64,65 +41,6 @@ function getWeekRange(date: Date) {
     };
 }
 
-// Define the time slots for the grid
-const TIME_SLOTS = [
-    '08:00 - 09:00',
-    '09:00 - 10:00',
-    '10:00 - 11:00',
-    '11:00 - 12:00',
-    '12:00 - 13:00',
-    '13:00 - 14:00',
-    '14:00 - 15:00',
-    '15:00 - 16:00',
-    '16:00 - 17:00'
-];
-
-// Define types
-interface TimetableSlot {
-    id: number;
-    degree_name: string;
-    module_name: string;
-    lab_name: string;
-    created_by_name: string;
-    slot_date: string;
-    day_of_week: number;
-    time_range: string;
-    note: string;
-    degree: number;
-    module: number;
-    lab: number;
-}
-
-interface GridCell {
-    slot: TimetableSlot | null;
-    displayText: string;
-}
-
-interface TimetableRow {
-    time: string;
-    monday: GridCell;
-    tuesday: GridCell;
-    wednesday: GridCell;
-    thursday: GridCell;
-    friday: GridCell;
-}
-
-interface SelectDateDialogProps {
-    open: boolean;
-    onClose: () => void;
-    degree: Degree | null;
-    onConfirm: (date: string) => void;
-}
-
-// Compact color scheme for different days
-const DAY_COLORS = {
-    monday: { bg: 'bg-blue-50', border: 'border-blue-200', text: 'text-blue-700', accent: 'bg-blue-500' },
-    tuesday: { bg: 'bg-emerald-50', border: 'border-emerald-200', text: 'text-emerald-700', accent: 'bg-emerald-500' },
-    wednesday: { bg: 'bg-violet-50', border: 'border-violet-200', text: 'text-violet-700', accent: 'bg-violet-500' },
-    thursday: { bg: 'bg-amber-50', border: 'border-amber-200', text: 'text-amber-700', accent: 'bg-amber-500' },
-    friday: { bg: 'bg-rose-50', border: 'border-rose-200', text: 'text-rose-700', accent: 'bg-rose-500' }
-};
-
 export function SelectDateDialog({
     open,
     onClose,
@@ -141,6 +59,28 @@ export function SelectDateDialog({
     const [isFullscreen, setIsFullscreen] = useState(false);
     const [showCalendar, setShowCalendar] = useState(true);
 
+    // State for adding new slots
+    const [editingCell, setEditingCell] = useState<{ time: string, day: string, dayIndex: number } | null>(null);
+    const [modules, setModules] = useState<CourseModule[]>([]);
+    const [labs, setLabs] = useState<Lab[]>([]);
+    const [loadingModules, setLoadingModules] = useState(false);
+    const [loadingLabs, setLoadingLabs] = useState(false);
+    const [isCreating, setIsCreating] = useState(false);
+
+    // const userId = authUser?.id;
+    const userId = 2;
+
+    // Form state for new slot
+    const [newSlotData, setNewSlotData] = useState<CreateTimetableSlotData>({
+        degree: degree?.id || 0,
+        module: 0,
+        lab: 0,
+        slot_date: "",
+        day_of_week: 0,
+        time_range: "",
+        note: ""
+    });
+
     // Transform API data into grid format
     const transformDataToGrid = (slots: TimetableSlot[], weekRange: { monday: string; friday: string }): TimetableRow[] => {
         const grid: TimetableRow[] = TIME_SLOTS.map(time => ({
@@ -154,7 +94,7 @@ export function SelectDateDialog({
 
         const weekDates: Record<string, number> = {};
         const mondayDate = parseISO(weekRange.monday);
-        
+
         for (let i = 0; i < 5; i++) {
             const date = new Date(mondayDate);
             date.setDate(mondayDate.getDate() + i);
@@ -225,7 +165,7 @@ export function SelectDateDialog({
             );
 
             let slots: TimetableSlot[] = [];
-            
+
             if (Array.isArray(response)) {
                 slots = response;
             } else if (response && response.data && Array.isArray(response.data)) {
@@ -245,6 +185,44 @@ export function SelectDateDialog({
             setTimetableGrid([]);
         } finally {
             setIsLoading(false);
+        }
+    };
+
+    // Fetch modules and labs
+    useEffect(() => {
+        if (open && degree) {
+            fetchCreateFormData();
+        }
+    }, [open, degree]);
+
+    // Fetch modules
+    const fetchCreateFormData = async () => {
+        if (!degree) return;
+
+        setLoadingModules(true);
+        try {
+            // newSlotData.slot_date = "2026-01-19"
+            // newSlotData.time_range = "08:00 - 09:00"
+            const response = await moduleService.getAllModulesForSingleStaff(userId, newSlotData.degree);
+            const availabilityData = await timeTableService.checkAvalibilityForSlot(newSlotData.slot_date, newSlotData.time_range);
+
+            // const response = await moduleService.getModuleById(degree.id);
+            // const availabilityData = Array.isArray(availabilityResponse) ? availabilityResponse : availabilityResponse?.data || [];
+            const data = Array.isArray(response) ? response : response?.data;
+            if (data && availabilityData) {
+                console.log("xxxx", data);
+                console.log("xxxx", availabilityData);
+                setModules(data);
+                setLabs(availabilityData.labs)
+            } else {
+                setModules([]);
+                setLabs([]);
+            }
+            // setModules(Array.isArray(response) ? response : response?.data || []);
+        } catch (err) {
+            console.error("Error fetching modules:", err);
+        } finally {
+            setLoadingModules(false);
         }
     };
 
@@ -285,13 +263,108 @@ export function SelectDateDialog({
         if (selectedDate) handleDateSelect(selectedDate);
     };
 
+    // Handle cell click for adding new slot
+    const handleCellClick =async (time: string, day: string, dayIndex: number) => {
+        if (!currentWeek || !degree) return;
+
+        const mondayDate = parseISO(currentWeek.monday);
+        const slotDate = new Date(mondayDate);
+        slotDate.setDate(mondayDate.getDate() + dayIndex);
+await fetchCreateFormData();
+        setNewSlotData({
+            degree: degree.id,
+            module: 0,
+            lab: 0,
+            slot_date: format(slotDate, 'yyyy-MM-dd'),
+            day_of_week: dayIndex + 1,
+            time_range: time,
+            note: ""
+        });
+
+        setEditingCell({ time, day, dayIndex });
+    };
+
+    // Handle create timetable slot
+    const handleCreateSlot = async () => {
+        if (!degree || !newSlotData.module || !newSlotData.lab) {
+            setError("Please select both module and lab");
+            // return;
+        }
+        const data = await moduleService.getAllModulesForSingleStaff(2, 2);
+        console.log("data ", data);
+        console.log("data new solts", newSlotData);
+
+        setIsCreating(true);
+        try {
+            // Call the API to create timetable slot
+            const datas = {
+
+                "degree": newSlotData.degree,
+                "module": newSlotData.module,
+                "lab": 2,
+                "slot_date": newSlotData.slot_date,
+                "day_of_week": newSlotData.day_of_week,
+                "time_range": newSlotData.time_range,
+                "note": newSlotData.note
+
+
+            }
+            const data = await timeTableService.createTimeSlot(datas);
+            console.log("response data jana", data);
+
+            // Refresh timetable data
+            if (selectedDate) {
+                await handleDateSelect(selectedDate);
+            }
+
+            // Reset form
+            setEditingCell(null);
+            setNewSlotData({
+                degree: degree.id,
+                module: 0,
+                lab: 0,
+                slot_date: "",
+                day_of_week: 0,
+                time_range: "",
+                note: ""
+            });
+
+            // Show success message (you can replace this with a toast notification)
+            alert("Timetable slot created successfully!");
+        } catch (err: any) {
+            setError(err.response?.data?.message || err.message || "Failed to create timetable slot");
+            console.error("Error creating timetable slot:", err);
+        } finally {
+            setIsCreating(false);
+        }
+    };
+
+    // Handle delete timetable slot
+    const handleDeleteSlot = async (slotId: number) => {
+        if (!confirm("Are you sure you want to delete this timetable slot?")) return;
+
+        try {
+            await timeTableService.deleteTimetableSlot(slotId);
+
+            // Refresh timetable data
+            if (selectedDate) {
+                await handleDateSelect(selectedDate);
+            }
+
+            alert("Timetable slot deleted successfully!");
+        } catch (err: any) {
+            setError(err.response?.data?.message || err.message || "Failed to delete timetable slot");
+            console.error("Error deleting timetable slot:", err);
+        }
+    };
+
     // Calendar component for sidebar
     const CalendarPanel = () => (
         <div className="w-full h-full flex flex-col space-y-6">
             <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                     <div className="p-1.5 rounded-md bg-blue-100">
-                        <CalendarDays className="h-4 w-4 text-blue-600" />
+                        <CalendarIcon className="h-4 w-4 text-blue-600" />
                     </div>
                     <div>
                         <h3 className="text-sm font-semibold text-gray-800">Select Week</h3>
@@ -307,7 +380,7 @@ export function SelectDateDialog({
                     <X className="h-3.5 w-3.5" />
                 </Button>
             </div>
-            
+
             <Calendar
                 mode="single"
                 selected={selectedDate}
@@ -337,7 +410,7 @@ export function SelectDateDialog({
                     day_hidden: "invisible",
                 }}
             />
-            
+
             <div className="space-y-3">
                 <div>
                     <p className="text-xs font-medium text-gray-500 mb-1.5">Selected Date</p>
@@ -354,8 +427,8 @@ export function SelectDateDialog({
                 <div className="pt-3 border-t">
                     <p className="text-xs font-medium text-gray-500 mb-2">Week Navigation</p>
                     <div className="flex gap-2">
-                        <Button 
-                            variant="outline" 
+                        <Button
+                            variant="outline"
                             size="sm"
                             onClick={handlePreviousWeek}
                             className="flex-1 text-xs h-7"
@@ -363,8 +436,8 @@ export function SelectDateDialog({
                             <ChevronLeft className="h-3 w-3 mr-1" />
                             Prev
                         </Button>
-                        <Button 
-                            variant="outline" 
+                        <Button
+                            variant="outline"
                             size="sm"
                             onClick={handleNextWeek}
                             className="flex-1 text-xs h-7"
@@ -393,14 +466,150 @@ export function SelectDateDialog({
     const displayGrid = timetableData.length > 0 ? timetableGrid : getEmptyTimetableGrid();
     const weekDays = getWeekDays();
 
+    // Create Slot Form Modal
+    const CreateSlotForm = () => {
+        if (!editingCell || !currentWeek) return null;
+
+        const selectedModule = modules.find(m => m.id === newSlotData.module);
+        const selectedLab = labs.find(l => l.id === newSlotData.lab);
+
+        return (
+            <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+                <div className="bg-white rounded-lg shadow-lg max-w-md w-full max-h-[90vh] overflow-auto">
+                    <div className="p-6">
+                        <div className="flex items-center justify-between mb-4">
+                            <h3 className="text-lg font-semibold">Add Timetable Slot</h3>
+                            <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => setEditingCell(null)}
+                                className="h-8 w-8 p-0"
+                            >
+                                <X className="h-4 w-4" />
+                            </Button>
+                        </div>
+
+                        <div className="space-y-4">
+                            <div>
+                                <Label className="text-sm font-medium">Date & Time</Label>
+                                <div className="flex items-center gap-2 mt-1">
+                                    <div className="flex-1 bg-gray-50 p-2 rounded">
+                                        <p className="text-sm">{format(parseISO(newSlotData.slot_date), 'EEE, MMM dd, yyyy')}</p>
+                                        <p className="text-xs text-gray-500">{newSlotData.time_range}</p>
+                                    </div>
+                                    <div className="bg-gray-50 p-2 rounded">
+                                        <p className="text-sm">Day {newSlotData.day_of_week}</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div>
+                                <Label htmlFor="module" className="text-sm font-medium">Module *</Label>
+                                <Select
+                                    value={newSlotData.module.toString()}
+                                    onValueChange={(value) => setNewSlotData({ ...newSlotData, module: parseInt(value) })}
+                                >
+                                    <SelectTrigger className="mt-1">
+                                        <SelectValue placeholder="Select module" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {loadingModules ? (
+                                            <SelectItem value="loading" disabled>Loading modules...</SelectItem>
+                                        ) : modules.length === 0 ? (
+                                            <SelectItem value="none" disabled>No modules found</SelectItem>
+                                        ) : (
+                                            modules.map((module) => (
+                                                <SelectItem key={module.id} value={module.id.toString()}>
+                                                    {module.id} - {module.staff_name}
+                                                </SelectItem>
+                                            ))
+                                        )}
+                                    </SelectContent>
+                                </Select>
+                            </div>
+
+                            <div>
+                                <Label htmlFor="lab" className="text-sm font-medium">Lab Room *</Label>
+                                <Select
+                                    value={newSlotData.lab.toString()}
+                                    onValueChange={(value) => setNewSlotData({ ...newSlotData, lab: parseInt(value) })}
+                                >
+                                    <SelectTrigger className="mt-1">
+                                        <SelectValue placeholder="Select lab room" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {loadingLabs ? (
+                                            <SelectItem value="loading" disabled>Loading labs...</SelectItem>
+                                        ) : labs.length === 0 ? (
+                                            <SelectItem value="none" disabled>No labs found</SelectItem>
+                                        ) : (
+                                            labs.map((lab) => (
+                                                <SelectItem key={lab.id} value={lab.id.toString()}>
+                                                    {lab.id} - {lab.name}-{lab.capacity}
+                                                </SelectItem>
+                                            ))
+                                        )}
+                                    </SelectContent>
+                                </Select>
+                            </div>
+
+                            <div>
+                                <Label htmlFor="note" className="text-sm font-medium">Notes (Optional)</Label>
+                                <Input
+                                    id="note"
+                                    value={newSlotData.note}
+                                    onChange={(e) => setNewSlotData({ ...newSlotData, note: e.target.value })}
+                                    placeholder="Add any notes here..."
+                                    className="mt-1"
+                                />
+                            </div>
+
+                            <div className="pt-4 border-t">
+                                <div className="flex justify-end gap-2">
+                                    <Button
+                                        variant="outline"
+                                        onClick={() => setEditingCell(null)}
+                                        disabled={isCreating}
+                                    >
+                                        Cancel
+                                    </Button>
+                                    <Button
+                                        onClick={handleCreateSlot}
+                                        // disabled={isCreating || !newSlotData.module || !newSlotData.lab}
+                                        className="bg-blue-600 hover:bg-blue-700"
+                                    >
+                                        {isCreating ? (
+                                            <>
+                                                <div className="h-4 w-4 border-2 border-white/30 border-t-white rounded-full animate-spin mr-2" />
+                                                Creating...
+                                            </>
+                                        ) : (
+                                            <>
+                                                <Save className="h-4 w-4 mr-2" />
+                                                Create Slot
+                                            </>
+                                        )}
+                                    </Button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        );
+    };
+
     return (
         <Dialog open={open} onOpenChange={onClose}>
             <DialogContent className={cn(
                 "p-0 overflow-hidden bg-white",
-                isFullscreen 
-                    ? "max-w-none w-screen h-screen rounded-none" 
+                isFullscreen
+                    ? "max-w-none w-screen h-screen rounded-none"
                     : "max-w-[95vw] max-h-[90vh] rounded-xl"
             )}>
+                {/* Create Slot Form Modal */}
+                <CreateSlotForm />
+
                 {/* Header - Compact */}
                 <div className="sticky top-0 z-50 bg-white border-b px-4 py-2">
                     <div className="flex items-center justify-between">
@@ -413,7 +622,7 @@ export function SelectDateDialog({
                             >
                                 <Menu className="h-4 w-4" />
                             </Button>
-                            
+
                             <div className="flex-1 min-w-0">
                                 <div className="flex items-center gap-2">
                                     <div className="p-1.5 rounded-md bg-blue-100">
@@ -429,6 +638,10 @@ export function SelectDateDialog({
                                             </Badge>
                                             <Badge variant="outline" className="text-xs h-5">
                                                 Semester I
+                                            </Badge>
+                                            <Badge variant="outline" className="text-xs h-5 bg-green-50 text-green-700 border-green-200">
+                                                <Plus className="h-3 w-3 mr-1" />
+                                                Add Mode
                                             </Badge>
                                         </div>
                                     </div>
@@ -449,7 +662,7 @@ export function SelectDateDialog({
                                     <Maximize2 className="h-3.5 w-3.5" />
                                 )}
                             </Button>
-                            
+
                             <Sheet>
                                 <SheetTrigger asChild>
                                     <Button variant="ghost" size="sm" className="md:hidden h-7 w-7 p-0">
@@ -460,9 +673,9 @@ export function SelectDateDialog({
                                     <CalendarPanel />
                                 </SheetContent>
                             </Sheet>
-                            
-                            <Button 
-                                variant="ghost" 
+
+                            <Button
+                                variant="ghost"
                                 size="sm"
                                 onClick={onClose}
                                 className="h-7 w-7 p-0"
@@ -488,33 +701,35 @@ export function SelectDateDialog({
                         {/* Action Bar - Compact */}
                         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 mb-3">
                             <div className="flex items-center gap-2">
-                                <Button 
-                                    variant="outline" 
+                                <Button
+                                    variant="outline"
                                     size="sm"
                                     onClick={handlePreviousWeek}
                                     className="h-7 px-2"
+                                    disabled={isLoading}
                                 >
                                     <ChevronLeft className="h-3.5 w-3.5" />
                                 </Button>
-                                
+
                                 <div className="text-center min-w-[180px]">
                                     <p className="text-xs font-semibold text-gray-700">
                                         {currentWeek ? `${formatDate(currentWeek.monday)} - ${formatDate(currentWeek.friday)}` : "Select a date"}
                                     </p>
                                     <p className="text-[10px] text-gray-500">Week View</p>
                                 </div>
-                                
-                                <Button 
-                                    variant="outline" 
+
+                                <Button
+                                    variant="outline"
                                     size="sm"
                                     onClick={handleNextWeek}
                                     className="h-7 px-2"
+                                    disabled={isLoading}
                                 >
                                     <ChevronRight className="h-3.5 w-3.5" />
                                 </Button>
 
-                                <Button 
-                                    variant="ghost" 
+                                <Button
+                                    variant="ghost"
                                     size="sm"
                                     onClick={refreshData}
                                     disabled={isLoading}
@@ -523,7 +738,7 @@ export function SelectDateDialog({
                                     <RefreshCw className={cn("h-3.5 w-3.5", isLoading && "animate-spin")} />
                                 </Button>
                             </div>
-                            
+
                             <div className="flex items-center gap-2">
                                 <Button variant="outline" size="sm" className="h-7 px-2 text-xs">
                                     <Printer className="h-3.5 w-3.5 mr-1" />
@@ -542,9 +757,17 @@ export function SelectDateDialog({
                                 <div className="bg-red-50 border border-red-200 rounded p-2 flex items-start gap-2">
                                     <AlertCircle className="h-4 w-4 text-red-600 mt-0.5 flex-shrink-0" />
                                     <div className="flex-1">
-                                        <p className="text-xs font-medium text-red-700">Error loading timetable</p>
+                                        <p className="text-xs font-medium text-red-700">Error</p>
                                         <p className="text-xs text-red-600 mt-0.5">{error}</p>
                                     </div>
+                                    <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        onClick={() => setError(null)}
+                                        className="h-6 w-6 p-0"
+                                    >
+                                        <X className="h-3 w-3" />
+                                    </Button>
                                 </div>
                             </div>
                         )}
@@ -604,8 +827,8 @@ export function SelectDateDialog({
                                             const dayNames = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'];
                                             const colors = Object.values(DAY_COLORS)[index];
                                             return (
-                                                <div 
-                                                    key={date.toString()} 
+                                                <div
+                                                    key={date.toString()}
                                                     className="p-2 border-r border-gray-700 last:border-r-0 text-center"
                                                 >
                                                     <div className="text-xs font-medium">{dayNames[index]}</div>
@@ -618,11 +841,11 @@ export function SelectDateDialog({
                                     </div>
                                 </div>
 
-                                {/* Table Body - Compact */}
+                                {/* Table Body - Compact with Add Functionality */}
                                 <div className="bg-white">
                                     {displayGrid.map((row, index) => (
-                                        <div 
-                                            key={index} 
+                                        <div
+                                            key={index}
                                             className={cn(
                                                 "grid grid-cols-6 border-b last:border-b-0",
                                                 index % 2 === 0 ? "bg-white" : "bg-gray-50/30"
@@ -640,82 +863,97 @@ export function SelectDateDialog({
                                                 </div>
                                             </div>
 
-                                            {/* Day Columns - Compact */}
+                                            {/* Day Columns - Compact with Add Button */}
                                             {['monday', 'tuesday', 'wednesday', 'thursday', 'friday'].map((day, dayIndex) => {
                                                 const cell = row[day as keyof TimetableRow] as GridCell;
                                                 const colors = Object.values(DAY_COLORS)[dayIndex];
-                                                const isEmpty = !cell.slot && timetableData.length === 0;
-                                                
+                                                const isEmpty = !cell.slot;
+                                                const canModifySlot = cell.slot?.staff_list?.some(
+                                                    staff => staff.staff_id === userId
+                                                );
+
+
                                                 return (
-                                                    <div 
-                                                        key={day} 
-                                                        className={cn(
-                                                            "p-2 border-r last:border-r-0 min-h-[55px] flex items-center justify-center",
-                                                            cell.slot && "cursor-pointer hover:bg-gray-50/50"
-                                                        )}
+                                                    <div
+                                                        key={day}
+                                                        className="p-2 border-r last:border-r-0 min-h-[55px] flex items-center justify-center relative group"
                                                     >
-                                                        <TooltipProvider>
-                                                            <Tooltip>
-                                                                <TooltipTrigger asChild>
-                                                                    <div className="w-full h-full">
-                                                                        {cell.slot ? (
+                                                        {cell.slot ? (
+                                                            // Existing slot with delete option
+                                                            <div className="w-full h-full relative group">
+                                                                <TooltipProvider>
+                                                                    <Tooltip>
+                                                                        <TooltipTrigger asChild>
                                                                             <div className={cn(
-                                                                                "w-full h-full p-2 rounded border text-center flex flex-col items-center justify-center",
+                                                                                "w-full h-full p-2 rounded border text-center flex flex-col items-center justify-center cursor-pointer hover:opacity-90 transition-opacity",
                                                                                 colors.bg, colors.border
                                                                             )}>
                                                                                 <div className="flex items-center justify-center gap-1 mb-0.5">
                                                                                     <div className={`h-1.5 w-1.5 rounded-full ${colors.accent}`}></div>
-                                                                                    <p className={cn("text-xs font-semibold truncate", colors.text)}>
-                                                                                        {cell.displayText}
+                                                                                    <p className={cn("text-xs font-normal truncate", colors.text)}>
+                                                                                        {cell.slot.module_code}
                                                                                     </p>
                                                                                 </div>
-                                                                                {cell.slot.lab_name && (
+                                                                                {cell.slot.lab_code && (
                                                                                     <div className="flex items-center justify-center gap-0.5">
                                                                                         <Building className="h-2.5 w-2.5 text-gray-500" />
                                                                                         <p className="text-[10px] text-gray-600 truncate">
-                                                                                            {cell.slot.lab_name}
+                                                                                            {cell.slot.lab_code}
                                                                                         </p>
                                                                                     </div>
                                                                                 )}
-                                                                                {/* {cell.slot.note && (
-                                                                                    <p className="text-[9px] text-gray-500 italic truncate w-full mt-0.5">
-                                                                                        {cell.slot.note}
-                                                                                    </p>
-                                                                                )} */}
                                                                             </div>
-                                                                        ) : isEmpty ? (
-                                                                            <div className="w-full h-full flex items-center justify-center">
-                                                                                <div className="p-1.5 rounded border border-dashed border-gray-200 bg-gray-50/30">
-                                                                                    <p className="text-[10px] text-gray-400">Available</p>
+                                                                        </TooltipTrigger>
+                                                                        <TooltipContent>
+                                                                            <div className="text-xs space-y-1 p-2 max-w-xs">
+                                                                                <p className="font-semibold">{cell.slot.module_name}</p>
+                                                                                <div className="flex items-center gap-1">
+                                                                                    <Building className="h-3 w-3" />
+                                                                                    <span>{cell.slot.lab_name}</span>
                                                                                 </div>
+                                                                                <div className="flex items-center gap-1">
+                                                                                    <Clock className="h-3 w-3" />
+                                                                                    <span>{cell.slot.time_range}</span>
+                                                                                </div>
+                                                                                {cell.slot.note && (
+                                                                                    <p className="italic text-gray-600">Note: {cell.slot.note}</p>
+                                                                                )}
                                                                             </div>
-                                                                        ) : (
-                                                                            <div className="w-full h-full flex items-center justify-center">
-                                                                                <span className="text-gray-300 text-xs">—</span>
-                                                                            </div>
-                                                                        )}
-                                                                    </div>
-                                                                </TooltipTrigger>
-                                                                {cell.slot && (
-                                                                    <TooltipContent>
-                                                                        <div className="text-xs space-y-1 p-2 max-w-xs">
-                                                                            <p className="font-semibold">{cell.slot.module_name}</p>
-                                                                            <div className="flex items-center gap-1">
-                                                                                <Building className="h-3 w-3" />
-                                                                                <span>{cell.slot.lab_name}</span>
-                                                                            </div>
-                                                                            <div className="flex items-center gap-1">
-                                                                                <Clock className="h-3 w-3" />
-                                                                                <span>{cell.slot.time_range}</span>
-                                                                            </div>
-                                                                            {cell.slot.note && (
-                                                                                <p className="italic text-gray-600">Note: {cell.slot.note}</p>
-                                                                            )}
-                                                                        </div>
-                                                                    </TooltipContent>
-                                                                )}
-                                                            </Tooltip>
-                                                        </TooltipProvider>
+                                                                        </TooltipContent>
+                                                                    </Tooltip>
+                                                                </TooltipProvider>
+
+                                                                {/* Delete button on hover */}
+
+                                                                {canModifySlot ?
+                                                                    <Button
+                                                                        variant="destructive"
+                                                                        size="sm"
+                                                                        onClick={() => cell.slot && handleDeleteSlot(cell.slot.id)}
+                                                                        className="absolute -top-2 -right-2 h-5 w-5 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                                                                    >
+                                                                        <Trash2 className="h-3 w-3" />
+                                                                    </Button>
+                                                                    : null}
+                                                            </div>
+                                                        ) : (
+                                                            // Empty cell with add button
+                                                            <Button
+                                                                variant="ghost"
+                                                                onClick={() => handleCellClick(row.time, day, dayIndex)}
+                                                                className="w-full h-full flex flex-col items-center justify-center p-2 hover:bg-gray-50/50 transition-colors"
+                                                            >
+                                                                <div className={cn(
+                                                                    "p-1.5 rounded border border-dashed transition-colors",
+                                                                    editingCell?.time === row.time && editingCell?.day === day
+                                                                        ? "border-blue-300 bg-blue-50/30"
+                                                                        : "border-gray-300 bg-gray-50/30 hover:border-blue-300 hover:bg-blue-50/30"
+                                                                )}>
+                                                                    <Plus className="h-3 w-3 text-gray-400 mb-1" />
+                                                                    <p className="text-[10px] text-gray-500">Add Slot</p>
+                                                                </div>
+                                                            </Button>
+                                                        )}
                                                     </div>
                                                 );
                                             })}
@@ -731,9 +969,13 @@ export function SelectDateDialog({
                                                 <div className="h-1.5 w-1.5 rounded-full bg-green-500 animate-pulse"></div>
                                                 <span>Live</span>
                                             </div>
-                                            <span>•</span>
+                                            <Separator orientation="vertical" className="h-4" />
                                             <span>
                                                 {timetableData.length} of {TIME_SLOTS.length * 5} slots
+                                            </span>
+                                            <Separator orientation="vertical" className="h-4" />
+                                            <span className="text-blue-600 font-medium">
+                                                Click empty cells to add sessions
                                             </span>
                                         </div>
                                         <div className="flex items-center gap-2">
@@ -752,7 +994,7 @@ export function SelectDateDialog({
                 </div>
 
                 {/* Footer - Compact */}
-                <div className="sticky bottom-0 bg-white border-t px-4 py-2">
+                {/* <div className="sticky bottom-0 bg-white border-t px-4 py-2">
                     <div className="flex flex-col sm:flex-row items-center justify-between gap-2">
                         <div className="flex items-center gap-3">
                             <div className="flex items-center gap-1">
@@ -762,7 +1004,7 @@ export function SelectDateDialog({
                                 </span>
                             </div>
                         </div>
-                        
+
                         <div className="flex items-center gap-2 w-full sm:w-auto">
                             <Button
                                 variant="outline"
@@ -773,12 +1015,12 @@ export function SelectDateDialog({
                             </Button>
                             <Button
                                 onClick={handleConfirm}
-                                disabled={!selectedDate || isLoading}
+                                disabled={!selectedDate || isLoading || isCreating}
                                 className="flex-1 sm:flex-none h-8 text-xs bg-blue-600 hover:bg-blue-700"
                             >
                                 {isLoading ? (
                                     <>
-                                        <div className="h-3 w-3 border border-white/30 border-t-white rounded-full animate-spin mr-1"></div>
+                                        <div className="h-3 w-3 border border-white/30 border-t-white rounded-full animate-spin mr-1" />
                                         Loading
                                     </>
                                 ) : (
@@ -787,7 +1029,7 @@ export function SelectDateDialog({
                             </Button>
                         </div>
                     </div>
-                </div>
+                </div> */}
             </DialogContent>
         </Dialog>
     );

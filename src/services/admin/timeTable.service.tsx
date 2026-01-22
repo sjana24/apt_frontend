@@ -29,16 +29,31 @@ const timeTableService = {
         }
     },
 
+    checkAvalibilityForSlot: async (date, timeRange) => {
+        try {
+            const response = await axiosInstance.get('main/labs/check-availability',{
+                 params: {
+                    date: date,
+                    time_range: timeRange,
+                }
+            });
+            return response.data;
+        } catch (error) {
+            console.error("Error fetching degrees:", error.response?.data || error.message);
+            throw error; // Rethrow so the component can handle the error message
+        }
+    },
+
     // 3. Create a new degree
-    // createDegree: async (data) => {
-    //     try {
-    //         const response = await axiosInstance.post('main/degree', data);
-    //         return response.data;
-    //     } catch (error) {
-    //         console.error("Error creating degree:", error.response?.data || error.message);
-    //         throw error;
-    //     }
-    // },
+    createTimeSlot: async (data) => {
+        try {
+            const response = await axiosInstance.post('main/timetable-slots', data);
+            return response.data;
+        } catch (error) {
+            console.error("Error creating degree:", error.response?.data || error.message);
+            throw error;
+        }
+    },
 
     // 4. Update an existing degree
     // updateDegree: async (id, data) => {
@@ -52,16 +67,17 @@ const timeTableService = {
     //     }
     // },
 
-    // // 5. Delete a degree
-    // deleteDegree: async (id) => {
-    //     try {
-    //         const response = await axiosInstance.delete(`main/degree/${id}`);
-    //         return response.data;
-    //     } catch (error) {
-    //         console.error(`Error deleting degree ${id}:`, error.response?.data || error.message);
-    //         throw error;
-    //     }
-    // }
+    // // 5. Delete a deleteTimetableSlot
+    deleteTimetableSlot: async (id) => {
+        try {
+            const response = await axiosInstance.delete(`main/timetable-slots/${id}`);
+            return response.data;
+        } catch (error) {
+            console.error(`Error deleting degree ${id}:`, error.response?.data || error.message);
+            throw error;
+        }
+    }
+    
 };
 
 export default timeTableService;

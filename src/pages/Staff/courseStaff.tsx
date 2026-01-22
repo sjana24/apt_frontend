@@ -197,7 +197,7 @@ export  function StaffModules() {
       header: "Degree Program",
       render: (item) => (
         <span className="text-muted-foreground">
-          {item.degree_details?.degreeProgram || "N/A"}
+          {item.module_details?.degreeProgram || "N/A"}
         </span>
       ),
     },

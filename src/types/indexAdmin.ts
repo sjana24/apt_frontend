@@ -18,7 +18,8 @@ export interface CourseModule {
   module_code: string;
   credit: number;
   degree: number;
-  degree_details?: {
+  staff_name: string;
+  module_details?: {
     degreeProgram: string;
     level: string;
   };
@@ -30,6 +31,8 @@ export interface Lab {
   id: number;
   availability: boolean;
   name: string;
+  labName: string;
+  labCode: string;
   capacity: number;
   created_at: string;
   updated_at: string;
