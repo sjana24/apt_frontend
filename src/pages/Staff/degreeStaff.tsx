@@ -27,7 +27,7 @@ import { Pencil, Trash2, Eye, ChevronRight, BookOpen, MapPin } from "lucide-reac
 import { toast } from "@/hooks/use-toast";
 import degreeService from "@/services/admin/degree.service";
 import timeTableService from "@/services/admin/timeTable.service";
-import { SelectDateDialog } from "@/components/SelectDateDialog";
+import { SelectDateDialog } from "@/components/TimeTableSlotSatff";
 import { getWeekRange } from "@/middleware/getWeek";
 
 export interface TimetableRow {

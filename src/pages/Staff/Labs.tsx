@@ -24,6 +24,8 @@ import {
 import { toast } from "@/hooks/use-toast";
 import { format, parseISO, compareDesc } from "date-fns";
 import labService from "@/services/admin/lab.service";
+import { TimeTabeSlotLabStaff } from "@/components/TimeTabeSlotLabStaff";
+import { getWeekRange } from "@/middleware/getWeek";
 
 // Sort options type
 type SortOption = "latest" | "oldest" | "name_asc" | "name_desc" | "capacity_asc" | "capacity_desc";
@@ -33,6 +35,8 @@ export function StaffLabs() {
   const [labs, setLabs] = useState<Lab[]>([]);
   const [filteredLabs, setFilteredLabs] = useState<Lab[]>([]);
   const [loading, setLoading] = useState(false);
+  const [isDateDialogOpen, setIsDateDialogOpen] = useState(false);
+  // const [pendingDe, setPendingDegree] = useState<Degree | null>(null);
 
   // Dialog states
   const [isCreateOpen, setIsCreateOpen] = useState(false);
@@ -45,6 +49,7 @@ export function StaffLabs() {
   const [showFilters, setShowFilters] = useState(false);
   const [capacityRange, setCapacityRange] = useState<[number, number]>([1, 100]);
   const [selectedCapacity, setSelectedCapacity] = useState<number | null>(null);
+  const [selectedDate, setSelectedDate] = useState<string | null>(null);
 
   const [formData, setFormData] = useState({
     name: "",
@@ -89,6 +94,27 @@ export function StaffLabs() {
 
     fetchLabs();
   }, []);
+
+  const handleDateConfirm = (date: string) => {
+          console.log("Selected Date:", date);
+  
+          setSelectedDate(date);
+          // Convert string → Date
+      const selected = new Date(date);
+  
+      // Get Monday & Friday
+      const weekRange = getWeekRange(selected);
+  
+      if (weekRange) {
+          console.log("Week Start (Monday):", weekRange.monday);
+          console.log("Week End (Friday):", weekRange.friday);
+          // console.log("Week End (Friday):",pendingDegree.id);
+      }
+  
+          // if (pendingDegree) {
+          //     // openExplorer(pendingDegree); // existing function
+          // }
+      };
 
   // =========================
   // FILTER AND SORT - Memoized
@@ -174,6 +200,15 @@ export function StaffLabs() {
     });
     setSelectedLab(null);
   }, []);
+
+  const handleRowClick = (lab: Lab) => {
+          console.log("Row Clicked Data:", lab); // Print to console
+          // openExplorer(degree); // Open the explorer popup
+          setSelectedLab(lab);
+          setIsDateDialogOpen(true);
+  
+      };
+  
 
   // =========================
   // TABLE COLUMNS
@@ -467,6 +502,7 @@ export function StaffLabs() {
             searchKey="name"
             searchPlaceholder="Search within filtered results..."
             emptyMessage="No laboratories match your filters. Try adjusting your search or filters."
+            onRowClick={handleRowClick}
           />
 
           {/* Stats */}
@@ -498,6 +534,12 @@ export function StaffLabs() {
           )}
         </>
       )}
+      <TimeTabeSlotLabStaff
+                  lab={selectedLab}
+                      open={isDateDialogOpen}
+                      onClose={() => setIsDateDialogOpen(false)}
+                      onConfirm={handleDateConfirm}
+                  />
     </div>
   );
 }
