@@ -17,6 +17,21 @@ const timeTableService = {
             throw error; // Rethrow so the component can handle the error message
         }
     },
+     getByLabAndRange: async (degreeId, startDate, endDate) => {
+        try {
+           const  data= {
+                    lab_id: degreeId,
+                    start_date: startDate,
+                    end_date: endDate
+                }
+            const response = await axiosInstance.post('main/timetable-slots/by-lab',data);
+            
+            return response.data;
+        } catch (error) {
+            console.error("Error fetching degrees:", error.response?.data || error.message);
+            throw error; // Rethrow so the component can handle the error message
+        }
+    },
 
     // 2. Get a single degree by ID
     getDegreeById: async (id) => {

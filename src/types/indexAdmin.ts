@@ -32,7 +32,7 @@ export interface Lab {
   availability: boolean;
   name: string;
   labName: string;
-  labCode: string;
+  lab_code: string;
   capacity: number;
   created_at: string;
   updated_at: string;

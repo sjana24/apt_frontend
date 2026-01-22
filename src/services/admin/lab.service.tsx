@@ -13,6 +13,16 @@ const labService = {
         }
     },
 
+     getAllLabsStaff: async () => {
+        try {
+            const response = await axiosInstance.get('main/labs/staff');
+            return response.data;
+        } catch (error) {
+            console.error("Error fetching labs:", error.response?.data || error.message);
+            throw error;
+        }
+    },
+
     // 2. GET SINGLE LAB BY ID
     // Maps to backend: def get(self, request, pk)
     getLabById: async (id) => {

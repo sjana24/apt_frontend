@@ -58,7 +58,7 @@ const moduleService = {
         }
     },
 
-     getAllModulesForSingleStaff: async (id:number,data) => {
+     getAllModulesForSingleStaffForDegree: async (id:number,data) => {
         try {
             // main/course/staff/1?degree_id=2
             const response = await axiosInstance.get(`main/course/staff/${id}`,{
@@ -66,6 +66,17 @@ const moduleService = {
                     degree_id: data,
                 }
             });
+            return response.data;
+        } catch (error) {
+            console.error("Error fetching modules:", error.response?.data || error.message);
+            throw error;
+        }
+    },
+
+     getAllModulesForSingleStaff: async (id:number) => {
+        try {
+            // main/course/staff/1?degree_id=2
+            const response = await axiosInstance.get(`main/course/staff/${id}`);
             return response.data;
         } catch (error) {
             console.error("Error fetching modules:", error.response?.data || error.message);

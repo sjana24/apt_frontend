@@ -1,4 +1,4 @@
-import { Degree } from "@/types/indexAdmin";
+import { Degree, Lab } from "@/types/indexAdmin";
 
 export interface TimetableSlot {
     id: number;
@@ -15,6 +15,7 @@ export interface TimetableSlot {
     degree: number;
     module: number;
     lab: number;
+    status:string;
     staff_list: StaffMember[];
 }
 export interface StaffMember {
@@ -39,6 +40,13 @@ export interface TimetableRow {
     friday: GridCell;
 }
 
+export interface TimeTabeSlotLabStaffProps {
+    open: boolean;
+    onClose: () => void;
+    lab: Lab | null;
+    onConfirm: (date: string) => void;
+}
+
 export interface SelectDateDialogProps {
     open: boolean;
     onClose: () => void;
@@ -55,4 +63,87 @@ export interface CreateTimetableSlotData {
     day_of_week: number;
     time_range: string;
     note: string;
+}
+
+// Filter options type
+export interface FilterOptions {
+  roles: string[];
+  degrees: number[];
+  levels: string[];
+  semesters: string[];
+  minCredits: number;
+  maxCredits: number;
+}
+
+export interface StaffModuleAssignment {
+  id: number;
+  role: string | null;
+  assigned_at: string;
+  updated_at?: string; // Add this if your API returns it
+  module_details: {
+    id: number;
+    module_name: string;
+    module_code: string;
+    credit: number;
+    degree_details: {
+      id: number;
+      degreeProgram: string;
+      level: string;
+      semester: string;
+      academicYear: number;
+    };
+  };
+  staff_id: number;
+  staff_name: string;
+}
+
+export interface BackendTimetableResponse {
+    lab: {
+        id: number;
+        name: string;
+        lab_code: string;
+        capacity: number;
+        availability: boolean;
+    };
+    start_date: string;
+    end_date: string;
+    total_days: number;
+    total_slots: number;
+    booked_slots: number;
+    free_slots: number;
+    occupancy_rate: number;
+    timetable: {
+        [date: string]: TimetableSlot[];
+    };
+}
+
+// Add this to your interfaces file (where you have the other interfaces)
+
+export interface StaffModuleAssignment {
+    id: number;
+    role: string | null;
+    assigned_at: string; // ISO date string
+    module_details: {
+        id: number;
+        module_name: string;
+        module_code: string;
+        credit: number;
+        degree_details: {
+            id: number;
+            degreeProgram: string;
+            level: string;
+            semester: string;
+            academicYear: number;
+        };
+    };
+    staff_id: number;
+    staff_name: string;
+}
+
+// Optional: If your API wraps the array in a data property
+export interface StaffModulesApiResponse {
+    data: StaffModuleAssignment[];
+    message?: string;
+    success?: boolean;
+    status?: number;
 }
