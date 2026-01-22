@@ -22,15 +22,22 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Pencil, Trash2, Eye, ChevronRight, BookOpen } from "lucide-react";
+import { Pencil, Trash2, Eye, ChevronRight, BookOpen, Filter, Search, X } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import degreeService from "@/services/admin/degree.service";
 
-export  function AdminDegrees() {
+export function AdminDegrees() {
   const [degrees, setDegrees] = useState<Degree[]>([]);
-const [loading, setLoading] = useState(false);
+  const [filteredDegrees, setFilteredDegrees] = useState<Degree[]>([]);
+  const [loading, setLoading] = useState(false);
 
-  // const [degrees, setDegrees] = useState<Degree[]>(mockDegrees);
+  // Filter states
+  const [searchTerm, setSearchTerm] = useState("");
+  const [levelFilter, setLevelFilter] = useState<string>("all");
+  const [semesterFilter, setSemesterFilter] = useState<string>("all");
+  const [academicYearFilter, setAcademicYearFilter] = useState<string>("all");
+
+  // Dialog states
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [isExplorerOpen, setIsExplorerOpen] = useState(false);
@@ -41,113 +48,129 @@ const [loading, setLoading] = useState(false);
     semester: "",
     academicYear: new Date().getFullYear(),
   });
+
+  // Get unique values for filters
+  const uniqueLevels = Array.from(new Set(degrees.map(d => d.level)));
+  const uniqueSemesters = Array.from(new Set(degrees.map(d => d.semester)));
+  const uniqueAcademicYears = Array.from(new Set(degrees.map(d => d.academicYear.toString()))).sort((a, b) => parseInt(b) - parseInt(a));
+
   useEffect(() => {
-  const fetchDegrees = async () => {
-    setLoading(true);
+    const fetchDegrees = async () => {
+      setLoading(true);
+      try {
+        const data = await degreeService.getAllDegrees();
+        setDegrees(data);
+        setFilteredDegrees(data); // Initialize filtered data
+      } catch (error: any) {
+        toast({
+          title: "Error",
+          description: error.response?.data?.message || "Failed to fetch degrees",
+          variant: "destructive",
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchDegrees();
+  }, []);
 
-    try {
-      const data = await degreeService.getAllDegrees();
-      setDegrees(data);
-    } catch (error: any) {
-      toast({
-        title: "Error",
-        description:
-          error.response?.data?.message || "Failed to fetch degrees",
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
+  // Apply filters whenever filters or degrees change
+  useEffect(() => {
+    let result = degrees;
+
+    // Apply search filter
+    if (searchTerm) {
+      result = result.filter(degree =>
+        degree.degreeProgram.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        degree.level.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        degree.semester.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        degree.academicYear.toString().includes(searchTerm)
+      );
     }
-  };
 
-  fetchDegrees();
-}, []);
+    // Apply level filter
+    if (levelFilter !== "all") {
+      result = result.filter(degree => degree.level === levelFilter);
+    }
 
+    // Apply semester filter
+    if (semesterFilter !== "all") {
+      result = result.filter(degree => degree.semester === semesterFilter);
+    }
+
+    // Apply academic year filter
+    if (academicYearFilter !== "all") {
+      result = result.filter(degree => degree.academicYear.toString() === academicYearFilter);
+    }
+
+    setFilteredDegrees(result);
+  }, [degrees, searchTerm, levelFilter, semesterFilter, academicYearFilter]);
 
   // Get modules for selected degree
   const degreeModules = selectedDegree
     ? mockModules.filter((m) => m.degree === selectedDegree.id)
     : [];
 
-  const handleCreate1 = async(e) => {
-console.log("Save clicked", formData)
-    };
-    const handleCreate = async (e?: React.MouseEvent) => {
-  e?.preventDefault();
+  const handleCreate = async (e?: React.MouseEvent) => {
+    e?.preventDefault();
+    try {
+      const response = await degreeService.createDegree(formData);
+      setDegrees((prev) => [...prev, response]);
+      toast({
+        title: "Degree created",
+        description: `${response.degreeProgram} added successfully.`,
+      });
+      setIsCreateOpen(false);
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.response?.data?.message || "Failed to create degree",
+        variant: "destructive",
+      });
+    }
+  };
 
-  try {
-    const response = await degreeService.createDegree(formData);
+  const handleEdit = async () => {
+    if (!selectedDegree?.id) return;
+    try {
+      const response = await degreeService.updateDegree(
+        selectedDegree.id,
+        formData
+      );
+      setDegrees((prev) =>
+        prev.map((d) => (d.id === response.id ? response : d))
+      );
+      toast({
+        title: "Degree updated",
+        description: `${response.degreeProgram} updated successfully.`,
+      });
+      setIsEditOpen(false);
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.response?.data?.message || "Failed to update degree",
+        variant: "destructive",
+      });
+    }
+  };
 
-    setDegrees((prev) => [...prev, response]);
-
-    toast({
-      title: "Degree created",
-      description: `${response.degreeProgram} added successfully.`,
-    });
-
-    setIsCreateOpen(false);
-  } catch (error: any) {
-    toast({
-      title: "Error",
-      description:
-        error.response?.data?.message || "Failed to create degree",
-      variant: "destructive",
-    });
-  }
-};
-
-
-const handleEdit = async () => {
-  if (!selectedDegree?.id) return;
-
-  try {
-    const response = await degreeService.updateDegree(
-      selectedDegree.id,
-      formData
-    );
-
-    setDegrees((prev) =>
-      prev.map((d) => (d.id === response.id ? response : d))
-    );
-
-    toast({
-      title: "Degree updated",
-      description: `${response.degreeProgram} updated successfully.`,
-    });
-
-    setIsEditOpen(false);
-  } catch (error: any) {
-    toast({
-      title: "Error",
-      description:
-        error.response?.data?.message || "Failed to update degree",
-      variant: "destructive",
-    });
-  }
-};
-
-  
   const handleDelete = async (degree: Degree) => {
-  try {
-    await degreeService.deleteDegree(degree.id);
-
-    setDegrees((prev) => prev.filter((d) => d.id !== degree.id));
-
-    toast({
-      title: "Degree deleted",
-      description: `${degree.degreeProgram} has been removed.`,
-      variant: "destructive",
-    });
-  } catch (error: any) {
-    toast({
-      title: "Error",
-      description:
-        error.response?.data?.message || "Failed to delete degree",
-      variant: "destructive",
-    });
-  }
-};
-
+    try {
+      await degreeService.deleteDegree(degree.id);
+      setDegrees((prev) => prev.filter((d) => d.id !== degree.id));
+      toast({
+        title: "Degree deleted",
+        description: `${degree.degreeProgram} has been removed.`,
+        variant: "destructive",
+      });
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.response?.data?.message || "Failed to delete degree",
+        variant: "destructive",
+      });
+    }
+  };
 
   const openEdit = (degree: Degree) => {
     setSelectedDegree(degree);
@@ -165,14 +188,11 @@ const handleEdit = async () => {
     setIsExplorerOpen(true);
   };
 
-  const resetForm = () => {
-    setFormData({
-      degreeProgram: "",
-      level: "",
-      semester: "",
-      academicYear: new Date().getFullYear(),
-    });
-    setSelectedDegree(null);
+  const resetFilters = () => {
+    setSearchTerm("");
+    setLevelFilter("all");
+    setSemesterFilter("all");
+    setAcademicYearFilter("all");
   };
 
   const columns: Column<Degree>[] = [
@@ -217,7 +237,7 @@ const handleEdit = async () => {
             <Pencil className="h-4 w-4" />
           </Button>
           <Button
-          type="button"
+            type="button"
             variant="ghost"
             size="icon"
             onClick={(e) => {
@@ -253,12 +273,121 @@ const handleEdit = async () => {
         onAction={() => setIsCreateOpen(true)}
       />
 
+      {/* Filter and Search Section */}
+      <div className="bg-white border rounded-lg p-4 space-y-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Filter className="h-4 w-4 text-muted-foreground" />
+            <h3 className="text-sm font-medium">Filters</h3>
+          </div>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={resetFilters}
+            disabled={!searchTerm && levelFilter === "all" && semesterFilter === "all" && academicYearFilter === "all"}
+            className="h-7 text-xs"
+          >
+            <X className="h-3 w-3 mr-1" />
+            Clear Filters
+          </Button>
+        </div>
+
+        {/* Search Bar */}
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Search degrees by program, level, semester, or year..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="pl-9"
+          />
+          {searchTerm && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setSearchTerm("")}
+              className="absolute right-2 top-1/2 transform -translate-y-1/2 h-6 w-6 p-0"
+            >
+              <X className="h-3 w-3" />
+            </Button>
+          )}
+        </div>
+
+        {/* Filter Row */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="space-y-2">
+            <Label htmlFor="level-filter" className="text-xs">Level</Label>
+            <Select value={levelFilter} onValueChange={setLevelFilter}>
+              <SelectTrigger id="level-filter" className="text-xs h-9">
+                <SelectValue placeholder="All Levels" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Levels</SelectItem>
+                {uniqueLevels.map(level => (
+                  <SelectItem key={level} value={level}>
+                    Level {level}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="semester-filter" className="text-xs">Semester</Label>
+            <Select value={semesterFilter} onValueChange={setSemesterFilter}>
+              <SelectTrigger id="semester-filter" className="text-xs h-9">
+                <SelectValue placeholder="All Semesters" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Semesters</SelectItem>
+                {uniqueSemesters.map(semester => (
+                  <SelectItem key={semester} value={semester}>
+                    Semester {semester}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="year-filter" className="text-xs">Academic Year</Label>
+            <Select value={academicYearFilter} onValueChange={setAcademicYearFilter}>
+              <SelectTrigger id="year-filter" className="text-xs h-9">
+                <SelectValue placeholder="All Years" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Years</SelectItem>
+                {uniqueAcademicYears.map(year => (
+                  <SelectItem key={year} value={year}>
+                    {year}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+
+        {/* Results Count */}
+        <div className="flex items-center justify-between text-xs text-muted-foreground pt-2 border-t">
+          <span>
+            Showing {filteredDegrees.length} of {degrees.length} degree programs
+          </span>
+          {(searchTerm || levelFilter !== "all" || semesterFilter !== "all" || academicYearFilter !== "all") && (
+            <span className="text-blue-600 font-medium">
+              Filters applied
+            </span>
+          )}
+        </div>
+      </div>
+
+      {/* Data Table */}
       <DataTable
-        data={degrees}
+        data={filteredDegrees}
         columns={columns}
         searchKey="degreeProgram"
         searchPlaceholder="Search degrees..."
         emptyMessage="No degree programs found. Create your first degree!"
+        // loading={loading}
       />
 
       {/* Create Dialog */}
