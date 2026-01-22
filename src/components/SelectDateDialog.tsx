@@ -203,7 +203,7 @@ export function SelectDateDialog({
         try {
             // newSlotData.slot_date = "2026-01-19"
             // newSlotData.time_range = "08:00 - 09:00"
-            const response = await moduleService.getAllModulesForSingleStaff(userId, newSlotData.degree);
+            const response = await moduleService.getAllModulesForSingleStaffForDegree(userId, newSlotData.degree);
             const availabilityData = await timeTableService.checkAvalibilityForSlot(newSlotData.slot_date, newSlotData.time_range);
 
             // const response = await moduleService.getModuleById(degree.id);
@@ -290,7 +290,7 @@ await fetchCreateFormData();
             setError("Please select both module and lab");
             // return;
         }
-        const data = await moduleService.getAllModulesForSingleStaff(2, 2);
+        const data = await moduleService.getAllModulesForSingleStaffForDegree(2, 2);
         console.log("data ", data);
         console.log("data new solts", newSlotData);
 

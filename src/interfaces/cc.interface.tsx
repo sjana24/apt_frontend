@@ -56,3 +56,35 @@ export interface CreateTimetableSlotData {
     time_range: string;
     note: string;
 }
+
+// Filter options type
+export interface FilterOptions {
+  roles: string[];
+  degrees: number[];
+  levels: string[];
+  semesters: string[];
+  minCredits: number;
+  maxCredits: number;
+}
+
+export interface StaffModuleAssignment {
+  id: number;
+  role: string | null;
+  assigned_at: string;
+  updated_at?: string; // Add this if your API returns it
+  module_details: {
+    id: number;
+    module_name: string;
+    module_code: string;
+    credit: number;
+    degree_details: {
+      id: number;
+      degreeProgram: string;
+      level: string;
+      semester: string;
+      academicYear: number;
+    };
+  };
+  staff_id: number;
+  staff_name: string;
+}
