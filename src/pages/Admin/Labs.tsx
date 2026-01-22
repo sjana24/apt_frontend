@@ -19,7 +19,7 @@ import { toast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 import labService from "@/services/admin/lab.service";
 
-export default function AdminLabs() {
+export  function AdminLabs() {
   const [labs, setLabs] = useState<Lab[]>([]);
   const [loading, setLoading] = useState(false);
   const [isCreateOpen, setIsCreateOpen] = useState(false);

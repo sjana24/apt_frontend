@@ -27,7 +27,7 @@ import { toast } from "@/hooks/use-toast";
 
 const roleOptions: StaffAssignment["role"][] = ["Lead Lecturer", "Assistant", "Lab Instructor"];
 
-export default function AdminAssignments() {
+export  function AdminAssignments() {
   const [assignments, setAssignments] = useState<StaffAssignment[]>(mockAssignments);
   const [selectedModule, setSelectedModule] = useState<CourseModule | null>(null);
   const [isAssignOpen, setIsAssignOpen] = useState(false);

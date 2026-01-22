@@ -26,79 +26,88 @@ import {
 import { Pencil, Trash2, Eye, ChevronRight, BookOpen, MapPin } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import degreeService from "@/services/admin/degree.service";
+import timeTableService from "@/services/admin/timeTable.service";
+import { SelectDateDialog } from "@/components/SelectDateDialog";
+import { getWeekRange } from "@/middleware/getWeek";
 
 export interface TimetableRow {
-  time: string
-  1: string
-  2: string
-  3: string
-  4: string
-  5: string
+    time: string
+    1: string
+    2: string
+    3: string
+    4: string
+    5: string
 }
 
 export const mockTimetable: TimetableRow[] = [
-  {
-    time: "08:00 - 09:00",
-    1: "-",
-    2: "Library",
-    3: "CST 372-3 (E3)",
-    4: "CST 381-2 (E3)",
-    5: "CST 371-2 (G6)"
-  },
-  {
-    time: "09:00 - 10:00",
-    1: "CST 327-2 (A1)",
-    2: "Library",
-    3: "CST 372-3 (E3)",
-    4: "CST 381-2 (E3)",
-    5: "CST 371-2 (G6)"
-  },
-  {
-    time: "10:00 - 11:00",
-    1: "CST 381-2 (G5)",
-    2: "CST 345-2 (E3)",
-    3: "CST 328-2 (G5)",
-    4: "CST 384-2 (MCL)",
-    5: "CST 372-3 (D1)"
-  },
-  {
-    time: "11:00 - 12:00",
-    1: "CST 381-2 (G5)",
-    2: "CST 345-2 (E3)",
-    3: "CST 333-2 (G6)",
-    4: "CST 384-2 (MCL)",
-    5: "CST 372-3 (D1)"
-  },
-  {
-    time: "12:00 - 13:00",
-    1: "CST 344-2 (D1)",
-    2: "",
-    3: "CST 333-2 (G6)",
-    4: "CST 384-2 (MCL)",
-    5: "Student Activities"
-  },
-  {
-    time: "14:00 - 15:00",
-    1: "CST 315-2 (G6)",
-    2: "CST 328-2 (E3)",
-    3: "CST 345-2 (E3)",
-    4: "ESD 311-1 (MLT)",
-    5: "CST 315-2 (G6)"
-  },
-  {
-    time: "15:00 - 16:00",
-    1: "",
-    2: "CST 328-2 (E3)",
-    3: "CST 345-2 (E3)",
-    4: "",
-    5: "CST 315-2 (G6)"
-  }
+    {
+        time: "08:00 - 09:00",
+        1: "-",
+        2: "Library",
+        3: "CST 372-3 (E3)",
+        4: "CST 381-2 (E3)",
+        5: "CST 371-2 (G6)"
+    },
+    {
+        time: "09:00 - 10:00",
+        1: "CST 327-2 (A1)",
+        2: "Library",
+        3: "CST 372-3 (E3)",
+        4: "CST 381-2 (E3)",
+        5: "CST 371-2 (G6)"
+    },
+    {
+        time: "10:00 - 11:00",
+        1: "CST 381-2 (G5)",
+        2: "CST 345-2 (E3)",
+        3: "CST 328-2 (G5)",
+        4: "CST 384-2 (MCL)",
+        5: "CST 372-3 (D1)"
+    },
+    {
+        time: "11:00 - 12:00",
+        1: "CST 381-2 (G5)",
+        2: "CST 345-2 (E3)",
+        3: "CST 333-2 (G6)",
+        4: "CST 384-2 (MCL)",
+        5: "CST 372-3 (D1)"
+    },
+    {
+        time: "12:00 - 13:00",
+        1: "CST 344-2 (D1)",
+        2: "",
+        3: "CST 333-2 (G6)",
+        4: "CST 384-2 (MCL)",
+        5: "Student Activities"
+    },
+    {
+        time: "14:00 - 15:00",
+        1: "CST 315-2 (G6)",
+        2: "CST 328-2 (E3)",
+        3: "CST 345-2 (E3)",
+        4: "ESD 311-1 (MLT)",
+        5: "CST 315-2 (G6)"
+    },
+    {
+        time: "15:00 - 16:00",
+        1: "",
+        2: "CST 328-2 (E3)",
+        3: "CST 345-2 (E3)",
+        4: "",
+        5: "CST 315-2 (G6)"
+    }
 ]
 
 
-export default function StaffDegrees() {
+export function StaffDegrees() {
     const [degrees, setDegrees] = useState<Degree[]>([]);
     const [loading, setLoading] = useState(false);
+    const [erroe, setError] = useState(false);
+
+    const [isDateDialogOpen, setIsDateDialogOpen] = useState(false);
+    const [pendingDegree, setPendingDegree] = useState<Degree | null>(null);
+    const [selectedDate, setSelectedDate] = useState<string | null>(null);
+
 
     // const [degrees, setDegrees] = useState<Degree[]>(mockDegrees);
     const [isCreateOpen, setIsCreateOpen] = useState(false);
@@ -111,6 +120,58 @@ export default function StaffDegrees() {
         semester: "",
         academicYear: new Date().getFullYear(),
     });
+
+    // Updated fetchTimetableData function in TimetableGrid.tsx
+    const fetchTimetableData = async () => {
+        try {
+            setLoading(true);
+            setError(null);
+
+            const degreeId = 2;
+            const startDate = "2026-03-09";
+            const endDate = "2026-03-15";
+
+            // Using the POST endpoint
+            const data = await timeTableService.getByDegreeAndRange(
+                degreeId,
+                startDate,
+                endDate
+            );
+
+            // setTimetableData(data);
+
+            // Set first date as selected if available
+            // if (data.timetable && Object.keys(data.timetable).length > 0) {
+            //     setSelectedDate(Object.keys(data.timetable)[0]);
+            // }
+        } catch (err: any) {
+            console.error('Full error object:', err);
+
+            // Handle different error types
+            if (err.response) {
+                // Server responded with error status
+                // setError(`Server error: ${err.response.status} - ${err.response.data?.message || 'Unknown error'}`);
+            } else if (err.request) {
+                // Request made but no response
+                // setError('No response from server. Please check your connection.');
+            } else {
+                // Error in setting up request
+                setError(err.message || 'Failed to fetch timetable data');
+            }
+
+            // Fallback to empty data structure
+            // setTimetableData({
+            //     degree: null,
+            //     start_date: startDate,
+            //     end_date: endDate,
+            //     timetable: {},
+            //     total_slots: 0
+            // });
+        } finally {
+            setLoading(false);
+        }
+    };
+
     useEffect(() => {
         const fetchDegrees = async () => {
             setLoading(true);
@@ -316,9 +377,34 @@ export default function StaffDegrees() {
 
     const AVAILABLE_HALLS = ["A1", "E3", "G5", "G6", "D1", "MCL", "MLT", "L1", "L2"];
 
+    const handleDateConfirm = (date: string) => {
+        console.log("Selected Date:", date);
+
+        setSelectedDate(date);
+        // Convert string → Date
+    const selected = new Date(date);
+
+    // Get Monday & Friday
+    const weekRange = getWeekRange(selected);
+
+    if (weekRange) {
+        console.log("Week Start (Monday):", weekRange.monday);
+        console.log("Week End (Friday):", weekRange.friday);
+        console.log("Week End (Friday):",pendingDegree.id);
+    }
+
+        if (pendingDegree) {
+            // openExplorer(pendingDegree); // existing function
+        }
+    };
+
+
     const handleRowClick = (degree: Degree) => {
         console.log("Row Clicked Data:", degree); // Print to console
-        openExplorer(degree); // Open the explorer popup
+        // openExplorer(degree); // Open the explorer popup
+        setPendingDegree(degree);
+        setIsDateDialogOpen(true);
+
     };
 
     return (
@@ -438,111 +524,118 @@ export default function StaffDegrees() {
             </Dialog>
 
             <Dialog open={isExplorerOpen} onOpenChange={setIsExplorerOpen}>
-        <DialogContent className="max-w-6xl max-h-[95vh] overflow-y-auto p-0 border-none bg-transparent">
-          <div className="rounded-3xl bg-card border shadow-2xl overflow-hidden">
-            
-            {/* 1. Header Section */}
-            <div className="p-6 border-b bg-muted/50 flex justify-between items-center">
-              <div>
-                <h2 className="text-2xl font-bold text-foreground">
-                  Semester {selectedDegree?.semester} Timetable ({selectedDegree?.academicYear} / {selectedDegree?.academicYear + 1})
-                </h2>
-                <p className="text-muted-foreground font-medium flex items-center gap-2">
-                  <BookOpen className="h-4 w-4" />
-                  {selectedDegree?.degreeProgram} — Level {selectedDegree?.level}
-                </p>
-              </div>
-              <Badge variant="outline" className="h-fit py-1 px-3 border-primary/30 text-primary bg-primary/5">
-                Academic Year {selectedDegree?.academicYear}
-              </Badge>
-            </div>
+                <DialogContent className="max-w-6xl max-h-[95vh] overflow-y-auto p-0 border-none bg-transparent">
+                    <div className="rounded-3xl bg-card border shadow-2xl overflow-hidden">
 
-            {/* 2. Timetable Grid Section */}
-            <div className="overflow-x-auto p-6 bg-background">
-              <table className="w-full border-collapse rounded-xl overflow-hidden border shadow-sm">
-                <thead>
-                  <tr className="bg-secondary/80 text-secondary-foreground">
-                    <th className="border p-4 text-left w-36 font-bold uppercase text-[11px] tracking-widest">Time</th>
-                    {["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"].map((day) => (
-                      <th key={day} className="border p-4 font-bold uppercase text-[11px] tracking-widest text-center">
-                        {day}
-                      </th>
-                    ))}
-                  </tr>
-                </thead>
+                        {/* 1. Header Section */}
+                        <div className="p-6 border-b bg-muted/50 flex justify-between items-center">
+                            <div>
+                                <h2 className="text-2xl font-bold text-foreground">
+                                    Semester {selectedDegree?.semester} Timetable ({selectedDegree?.academicYear} / {selectedDegree?.academicYear + 1})
+                                </h2>
+                                <p className="text-muted-foreground font-medium flex items-center gap-2">
+                                    <BookOpen className="h-4 w-4" />
+                                    {selectedDegree?.degreeProgram} — Level {selectedDegree?.level}
+                                </p>
+                            </div>
+                            <Badge variant="outline" className="h-fit py-1 px-3 border-primary/30 text-primary bg-primary/5">
+                                Academic Year {selectedDegree?.academicYear}
+                            </Badge>
+                        </div>
 
-                <tbody className="text-sm">
-                  {mockTimetable.map((row, index) => (
-                    <tr key={index} className="hover:bg-muted/30 transition-colors group">
-                      {/* Time Slot */}
-                      <td className="border p-4 font-bold bg-muted/10 whitespace-nowrap text-foreground">
-                        {row.time}
-                      </td>
+                        {/* 2. Timetable Grid Section */}
+                        <div className="overflow-x-auto p-6 bg-background">
+                            <table className="w-full border-collapse rounded-xl overflow-hidden border shadow-sm">
+                                <thead>
+                                    <tr className="bg-secondary/80 text-secondary-foreground">
+                                        <th className="border p-4 text-left w-36 font-bold uppercase text-[11px] tracking-widest">Time</th>
+                                        {["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"].map((day) => (
+                                            <th key={day} className="border p-4 font-bold uppercase text-[11px] tracking-widest text-center">
+                                                {day}
+                                            </th>
+                                        ))}
+                                    </tr>
+                                </thead>
 
-                      {/* Day Columns 1 to 5 */}
-                      {[1, 2, 3, 4, 5].map((dayKey) => {
-                        const cellData = row[dayKey as keyof TimetableRow];
-                        // Logic: If data is not "-", not empty, and not null, show badge. Else show Select.
-                        const hasAssignment = cellData && cellData !== "-" && cellData !== "";
+                                <tbody className="text-sm">
+                                    {mockTimetable.map((row, index) => (
+                                        <tr key={index} className="hover:bg-muted/30 transition-colors group">
+                                            {/* Time Slot */}
+                                            <td className="border p-4 font-bold bg-muted/10 whitespace-nowrap text-foreground">
+                                                {row.time}
+                                            </td>
 
-                        return (
-                          <td key={dayKey} className="border p-3 text-center min-w-[160px]">
-                            {hasAssignment ? (
-                              <div className="group relative rounded-lg bg-primary/10 text-primary border border-primary/20 p-3 font-bold shadow-sm hover:bg-primary/15 transition-all">
-                                <div className="text-[13px]">{cellData}</div>
-                                <div className="text-[10px] opacity-70 font-medium mt-1 flex items-center justify-center gap-1">
-                                  <MapPin className="h-3 w-3" /> Assigned
+                                            {/* Day Columns 1 to 5 */}
+                                            {[1, 2, 3, 4, 5].map((dayKey) => {
+                                                const cellData = row[dayKey as keyof TimetableRow];
+                                                // Logic: If data is not "-", not empty, and not null, show badge. Else show Select.
+                                                const hasAssignment = cellData && cellData !== "-" && cellData !== "";
+
+                                                return (
+                                                    <td key={dayKey} className="border p-3 text-center min-w-[160px]">
+                                                        {hasAssignment ? (
+                                                            <div className="group relative rounded-lg bg-primary/10 text-primary border border-primary/20 p-3 font-bold shadow-sm hover:bg-primary/15 transition-all">
+                                                                <div className="text-[13px]">{cellData}</div>
+                                                                <div className="text-[10px] opacity-70 font-medium mt-1 flex items-center justify-center gap-1">
+                                                                    <MapPin className="h-3 w-3" /> Assigned
+                                                                </div>
+                                                            </div>
+                                                        ) : (
+                                                            /* Dropdown for empty slots */
+                                                            <Select onValueChange={(val) => console.log(`Assigning ${val} to ${row.time}`)}>
+                                                                <SelectTrigger className="h-10 border-dashed border-2 bg-muted/20 hover:border-primary/40 hover:bg-background transition-all group-hover:border-primary/30">
+                                                                    <SelectValue placeholder="Assign Hall" />
+                                                                </SelectTrigger>
+                                                                <SelectContent>
+                                                                    {AVAILABLE_HALLS.map((hall) => (
+                                                                        <SelectItem key={hall} value={hall}>
+                                                                            Hall {hall}
+                                                                        </SelectItem>
+                                                                    ))}
+                                                                </SelectContent>
+                                                            </Select>
+                                                        )}
+                                                    </td>
+                                                );
+                                            })}
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+
+                        {/* 3. Module Index Footer */}
+                        <div className="p-6 bg-muted/20 border-t grid grid-cols-1 md:grid-cols-3 gap-6">
+                            <div className="md:col-span-2">
+                                <h3 className="font-bold text-xs text-muted-foreground uppercase tracking-wider mb-3">Module Descriptions</h3>
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-2">
+                                    {/* This part can be mapped from your actual degreeModules */}
+                                    <div className="text-xs flex justify-between border-b border-muted py-1">
+                                        <span className="font-bold text-primary">CST 327-2</span>
+                                        <span className="text-muted-foreground truncate ml-2">Advanced Database Systems</span>
+                                    </div>
+                                    <div className="text-xs flex justify-between border-b border-muted py-1">
+                                        <span className="font-bold text-primary">CST 372-3</span>
+                                        <span className="text-muted-foreground truncate ml-2">Software Engineering</span>
+                                    </div>
                                 </div>
-                              </div>
-                            ) : (
-                              /* Dropdown for empty slots */
-                              <Select onValueChange={(val) => console.log(`Assigning ${val} to ${row.time}`)}>
-                                <SelectTrigger className="h-10 border-dashed border-2 bg-muted/20 hover:border-primary/40 hover:bg-background transition-all group-hover:border-primary/30">
-                                  <SelectValue placeholder="Assign Hall" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  {AVAILABLE_HALLS.map((hall) => (
-                                    <SelectItem key={hall} value={hall}>
-                                      Hall {hall}
-                                    </SelectItem>
-                                  ))}
-                                </SelectContent>
-                              </Select>
-                            )}
-                          </td>
-                        );
-                      })}
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                            </div>
+                            <div className="flex flex-col justify-end items-end space-y-2">
+                                <p className="text-[10px] text-muted-foreground italic">
+                                    * Selected halls are subject to Department approval.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </DialogContent>
+            </Dialog>
 
-            {/* 3. Module Index Footer */}
-            <div className="p-6 bg-muted/20 border-t grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div className="md:col-span-2">
-                <h3 className="font-bold text-xs text-muted-foreground uppercase tracking-wider mb-3">Module Descriptions</h3>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-2">
-                   {/* This part can be mapped from your actual degreeModules */}
-                   <div className="text-xs flex justify-between border-b border-muted py-1">
-                      <span className="font-bold text-primary">CST 327-2</span>
-                      <span className="text-muted-foreground truncate ml-2">Advanced Database Systems</span>
-                   </div>
-                   <div className="text-xs flex justify-between border-b border-muted py-1">
-                      <span className="font-bold text-primary">CST 372-3</span>
-                      <span className="text-muted-foreground truncate ml-2">Software Engineering</span>
-                   </div>
-                </div>
-              </div>
-              <div className="flex flex-col justify-end items-end space-y-2">
-                <p className="text-[10px] text-muted-foreground italic">
-                  * Selected halls are subject to Department approval.
-                </p>
-              </div>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
+            <SelectDateDialog
+            degree={pendingDegree}
+                open={isDateDialogOpen}
+                onClose={() => setIsDateDialogOpen(false)}
+                onConfirm={handleDateConfirm}
+            />
 
 
         </div>

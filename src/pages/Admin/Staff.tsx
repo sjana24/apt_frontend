@@ -43,7 +43,7 @@ const roleColors: Record<Staff["role"], "default" | "secondary" | "outline"> = {
   staff: "outline"
 };
 
-export default function AdminStaffPage() {
+export  function AdminStaffPage() {
   const [staff, setStaff] = useState<Staff[]>([]);
   const [loading, setLoading] = useState(false);
   const [isCreateOpen, setIsCreateOpen] = useState(false);

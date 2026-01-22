@@ -28,7 +28,7 @@ import { format } from "date-fns";
 import moduleService from "@/services/admin/courseModules.service";
 // import degreeService from "@/services/degreeService";
 
-export default function StaffModules() {
+export  function StaffModules() {
   const [modules, setModules] = useState<CourseModule[]>([]);
   const [degrees, setDegrees] = useState<Degree[]>([]);
   const [loading, setLoading] = useState(false);
@@ -197,7 +197,7 @@ export default function StaffModules() {
       header: "Degree Program",
       render: (item) => (
         <span className="text-muted-foreground">
-          {item.degree_details?.degreeProgram || "N/A"}
+          {item.module_details?.degreeProgram || "N/A"}
         </span>
       ),
     },

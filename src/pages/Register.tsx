@@ -11,7 +11,7 @@ import Navbar from '@/components/Navbar';
 import studyRoomImg from '@/assets/study-room.jpg';
 import authService from '@/services/auth/auth.service';
 
-const Register = () => {
+export function Register () {
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
     name: '',

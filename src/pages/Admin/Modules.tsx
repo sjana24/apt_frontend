@@ -20,7 +20,7 @@ import { format } from "date-fns";
 
 import moduleService from "@/services/admin/courseModules.service";
 
-export default function AdminModules() {
+export  function AdminModules() {
   const [modules, setModules] = useState<CourseModule[]>([]);
   const [loading, setLoading] = useState(false);
   
@@ -158,9 +158,9 @@ export default function AdminModules() {
       module_code: module.module_code,
       credit: module.credit,
       degree: module.degree,
-      degree_name: module.degree_details?.degreeProgram || ""
+      degree_name: module.module_details?.degreeProgram || ""
     });
-    setQuery(module.degree_details?.degreeProgram || "");
+    setQuery(module.module_details?.degreeProgram || "");
     setIsEditOpen(true);
   };
 
@@ -181,7 +181,7 @@ export default function AdminModules() {
     { key: "module_code", header: "Code" },
     { key: "module_name", header: "Module Name" },
     { key: "credit", header: "Credits", render: (item) => <Badge variant="outline">{item.credit} credits</Badge> },
-    { key: "degree_details.degreeProgram", header: "Degree Program", render: (item) => <span className="text-muted-foreground">{item.degree_details?.degreeProgram || "N/A"}</span> },
+    { key: "degree_details.degreeProgram", header: "Degree Program", render: (item) => <span className="text-muted-foreground">{item.module_details?.degreeProgram || "N/A"}</span> },
     // { key: "created_at", header: "Created", render: (item) => format(new Date(item.created_at), "MMM d, yyyy") },
     {
       key: "actions", header: "Actions", render: (item) => (
