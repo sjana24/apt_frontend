@@ -14,14 +14,21 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Pencil, Trash2, Check } from "lucide-react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Pencil, Trash2, Check, Filter, Search, X } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { format } from "date-fns";
-
 import moduleService from "@/services/admin/courseModules.service";
 
-export  function AdminModules() {
+export function AdminModules() {
   const [modules, setModules] = useState<CourseModule[]>([]);
+  const [filteredModules, setFilteredModules] = useState<CourseModule[]>([]);
   const [loading, setLoading] = useState(false);
   
   // Search and Dropdown States
@@ -29,6 +36,11 @@ export  function AdminModules() {
   const [results, setResults] = useState<Degree[]>([]);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+
+  // Filter states
+  const [searchTerm, setSearchTerm] = useState("");
+  const [creditFilter, setCreditFilter] = useState<string>("all");
+  const [degreeFilter, setDegreeFilter] = useState<string>("all");
 
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [isEditOpen, setIsEditOpen] = useState(false);
@@ -42,6 +54,16 @@ export  function AdminModules() {
     degree_name: "" // Added to track the label in the UI
   });
 
+  // Get unique values for filters
+  const uniqueCredits = Array.from(new Set(modules.map(m => m.credit))).sort((a, b) => a - b);
+  const uniqueDegrees = Array.from(
+    new Set(
+      modules
+        .map(m => m.module_details?.degreeProgram)
+        .filter(Boolean)
+    )
+  ).sort();
+
   // =========================
   // FETCH DATA (INITIAL)
   // =========================
@@ -51,6 +73,7 @@ export  function AdminModules() {
       try {
         const moduleData = await moduleService.getAllModules();
         setModules(moduleData);
+        setFilteredModules(moduleData); // Initialize filtered data
       } catch (error: any) {
         toast({
           title: "Error",
@@ -64,8 +87,35 @@ export  function AdminModules() {
     fetchData();
   }, []);
 
+  // Apply filters whenever filters or modules change
+  useEffect(() => {
+    let result = modules;
+
+    // Apply search filter
+    if (searchTerm) {
+      result = result.filter(module =>
+        module.module_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        module.module_code.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        module.module_details?.degreeProgram?.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    }
+
+    // Apply credit filter
+    if (creditFilter !== "all") {
+      const creditValue = parseInt(creditFilter);
+      result = result.filter(module => module.credit === creditValue);
+    }
+
+    // Apply degree filter
+    if (degreeFilter !== "all") {
+      result = result.filter(module => module.module_details?.degreeProgram === degreeFilter);
+    }
+
+    setFilteredModules(result);
+  }, [modules, searchTerm, creditFilter, degreeFilter]);
+
   // =========================
-  // SEARCH LOGIC (DEBOUNCE)
+  // SEARCH LOGIC (DEBOUNCE for degree dropdown)
   // =========================
   useEffect(() => {
     const delayDebounceFn = setTimeout(() => {
@@ -171,6 +221,12 @@ export  function AdminModules() {
     setSelectedModule(null);
   };
 
+  const resetFilters = () => {
+    setSearchTerm("");
+    setCreditFilter("all");
+    setDegreeFilter("all");
+  };
+
   const handleSelectDegree = (degree: Degree) => {
     setFormData({ ...formData, degree: degree.id, degree_name: degree.degreeProgram });
     setQuery(degree.degreeProgram);
@@ -182,7 +238,6 @@ export  function AdminModules() {
     { key: "module_name", header: "Module Name" },
     { key: "credit", header: "Credits", render: (item) => <Badge variant="outline">{item.credit} credits</Badge> },
     { key: "degree_details.degreeProgram", header: "Degree Program", render: (item) => <span className="text-muted-foreground">{item.module_details?.degreeProgram || "N/A"}</span> },
-    // { key: "created_at", header: "Created", render: (item) => format(new Date(item.created_at), "MMM d, yyyy") },
     {
       key: "actions", header: "Actions", render: (item) => (
         <div className="flex items-center gap-1">
@@ -199,11 +254,121 @@ export  function AdminModules() {
 
   return (
     <div className="space-y-6">
-      <PageHeader title="Course Modules" description="Manage course modules across all degree programs." actionLabel="Add Module" onAction={() => setIsCreateOpen(true)} />
+      <PageHeader 
+        title="Course Modules" 
+        description="Manage course modules across all degree programs." 
+        actionLabel="Add Module" 
+        onAction={() => setIsCreateOpen(true)} 
+      />
 
-      <DataTable data={modules} columns={columns} searchKey="module_name" searchPlaceholder="Search modules..." emptyMessage="No modules found." />
+      {/* Filter and Search Section */}
+      <div className="bg-white border rounded-lg p-4 space-y-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Filter className="h-4 w-4 text-muted-foreground" />
+            <h3 className="text-sm font-medium">Filters</h3>
+          </div>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={resetFilters}
+            disabled={!searchTerm && creditFilter === "all" && degreeFilter === "all"}
+            className="h-7 text-xs"
+          >
+            <X className="h-3 w-3 mr-1" />
+            Clear Filters
+          </Button>
+        </div>
 
-      <Dialog open={isCreateOpen || isEditOpen} onOpenChange={(open) => { if (!open) { setIsCreateOpen(false); setIsEditOpen(false); resetForm(); } }}>
+        {/* Search Bar */}
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Search modules by name, code, or degree program..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="pl-9"
+          />
+          {searchTerm && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setSearchTerm("")}
+              className="absolute right-2 top-1/2 transform -translate-y-1/2 h-6 w-6 p-0"
+            >
+              <X className="h-3 w-3" />
+            </Button>
+          )}
+        </div>
+
+        {/* Filter Row */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <Label htmlFor="credit-filter" className="text-xs">Credits</Label>
+            <Select value={creditFilter} onValueChange={setCreditFilter}>
+              <SelectTrigger id="credit-filter" className="text-xs h-9">
+                <SelectValue placeholder="All Credits" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Credits</SelectItem>
+                {uniqueCredits.map(credit => (
+                  <SelectItem key={credit} value={credit.toString()}>
+                    {credit} credits
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="degree-filter" className="text-xs">Degree Program</Label>
+            <Select value={degreeFilter} onValueChange={setDegreeFilter}>
+              <SelectTrigger id="degree-filter" className="text-xs h-9">
+                <SelectValue placeholder="All Degrees" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Degrees</SelectItem>
+                {uniqueDegrees.map(degree => (
+                  <SelectItem key={degree} value={degree}>
+                    {degree}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+
+        {/* Results Count */}
+        <div className="flex items-center justify-between text-xs text-muted-foreground pt-2 border-t">
+          <span>
+            Showing {filteredModules.length} of {modules.length} modules
+          </span>
+          {(searchTerm || creditFilter !== "all" || degreeFilter !== "all") && (
+            <span className="text-blue-600 font-medium">
+              Filters applied
+            </span>
+          )}
+        </div>
+      </div>
+
+      {/* Data Table */}
+      <DataTable 
+        data={filteredModules} 
+        columns={columns} 
+        searchKey="module_name" 
+        searchPlaceholder="Search modules..." 
+        emptyMessage="No modules found." 
+        // loading={loading}
+      />
+
+      {/* Create/Edit Dialog */}
+      <Dialog open={isCreateOpen || isEditOpen} onOpenChange={(open) => { 
+        if (!open) { 
+          setIsCreateOpen(false); 
+          setIsEditOpen(false); 
+          resetForm(); 
+        } 
+      }}>
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
             <DialogTitle>{isEditOpen ? "Edit Module" : "Create New Module"}</DialogTitle>

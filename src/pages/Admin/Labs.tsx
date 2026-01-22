@@ -14,13 +14,21 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Pencil, Trash2, Power } from "lucide-react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Pencil, Trash2, Power, Filter, Search, X } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 import labService from "@/services/admin/lab.service";
 
-export  function AdminLabs() {
+export function AdminLabs() {
   const [labs, setLabs] = useState<Lab[]>([]);
+  const [filteredLabs, setFilteredLabs] = useState<Lab[]>([]);
   const [loading, setLoading] = useState(false);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [isEditOpen, setIsEditOpen] = useState(false);
@@ -31,6 +39,11 @@ export  function AdminLabs() {
     capacity: 10,
   });
 
+  // Filter states
+  const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [capacityFilter, setCapacityFilter] = useState<string>("all");
+
   // =========================
   // FETCH DATA
   // =========================
@@ -40,6 +53,7 @@ export  function AdminLabs() {
       try {
         const data = await labService.getAllLabs();
         setLabs(data);
+        setFilteredLabs(data); // Initialize filtered data
       } catch (error: any) {
         toast({
           title: "Error",
@@ -52,6 +66,47 @@ export  function AdminLabs() {
     };
     fetchLabs();
   }, []);
+
+  // Apply filters whenever filters or labs change
+  useEffect(() => {
+    let result = labs;
+
+    // Apply search filter
+    if (searchTerm) {
+      result = result.filter(lab =>
+        lab.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        lab.lab_code?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        lab.capacity.toString().includes(searchTerm)
+      );
+    }
+
+    // Apply status filter
+    if (statusFilter !== "all") {
+      const statusValue = statusFilter === "available" ? true : false;
+      result = result.filter(lab => lab.availability === statusValue);
+    }
+
+    // Apply capacity filter
+    if (capacityFilter !== "all") {
+      switch (capacityFilter) {
+        case "small":
+          result = result.filter(lab => lab.capacity <= 20);
+          break;
+        case "medium":
+          result = result.filter(lab => lab.capacity > 20 && lab.capacity <= 40);
+          break;
+        case "large":
+          result = result.filter(lab => lab.capacity > 40);
+          break;
+        case "custom":
+          // Custom range filter - you can expand this as needed
+          result = result.filter(lab => lab.capacity >= 30);
+          break;
+      }
+    }
+
+    setFilteredLabs(result);
+  }, [labs, searchTerm, statusFilter, capacityFilter]);
 
   // =========================
   // CREATE
@@ -92,15 +147,13 @@ export  function AdminLabs() {
   };
 
   // =========================
-  // TOGGLE AVAILABILITY (THE NEW FIX)
+  // TOGGLE AVAILABILITY
   // =========================
   const handleAvailability = async (lab: Lab) => {
     // Toggle between 0 and 1
     const newStatus = lab.availability ? 0 : 1;
     
     try {
-      // We send the partial update to the backend
-      // Using spreading ensures we don't lose other fields
       const response = await labService.updateLab(lab.id, {
         ...lab,
         availability: newStatus
@@ -152,6 +205,12 @@ export  function AdminLabs() {
   const resetForm = () => {
     setFormData({ name: "", capacity: 30 });
     setSelectedLab(null);
+  };
+
+  const resetFilters = () => {
+    setSearchTerm("");
+    setStatusFilter("all");
+    setCapacityFilter("all");
   };
 
   // =========================
@@ -215,14 +274,103 @@ export  function AdminLabs() {
         onAction={() => setIsCreateOpen(true)}
       />
 
+      {/* Filter and Search Section */}
+      <div className="bg-white border rounded-lg p-4 space-y-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Filter className="h-4 w-4 text-muted-foreground" />
+            <h3 className="text-sm font-medium">Filters</h3>
+          </div>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={resetFilters}
+            disabled={!searchTerm && statusFilter === "all" && capacityFilter === "all"}
+            className="h-7 text-xs"
+          >
+            <X className="h-3 w-3 mr-1" />
+            Clear Filters
+          </Button>
+        </div>
+
+        {/* Search Bar */}
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Search labs by name, code, or capacity..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="pl-9"
+          />
+          {searchTerm && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setSearchTerm("")}
+              className="absolute right-2 top-1/2 transform -translate-y-1/2 h-6 w-6 p-0"
+            >
+              <X className="h-3 w-3" />
+            </Button>
+          )}
+        </div>
+
+        {/* Filter Row */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <Label htmlFor="status-filter" className="text-xs">Status</Label>
+            <Select value={statusFilter} onValueChange={setStatusFilter}>
+              <SelectTrigger id="status-filter" className="text-xs h-9">
+                <SelectValue placeholder="All Status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Status</SelectItem>
+                <SelectItem value="available">Available</SelectItem>
+                <SelectItem value="unavailable">Unavailable</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="capacity-filter" className="text-xs">Capacity</Label>
+            <Select value={capacityFilter} onValueChange={setCapacityFilter}>
+              <SelectTrigger id="capacity-filter" className="text-xs h-9">
+                <SelectValue placeholder="All Capacities" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Capacities</SelectItem>
+                <SelectItem value="small">Small (≤ 20 seats)</SelectItem>
+                <SelectItem value="medium">Medium (21-40 seats)</SelectItem>
+                <SelectItem value="large">Large (41+ seats)</SelectItem>
+                <SelectItem value="custom">30+ seats</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+
+        {/* Results Count */}
+        <div className="flex items-center justify-between text-xs text-muted-foreground pt-2 border-t">
+          <span>
+            Showing {filteredLabs.length} of {labs.length} labs
+          </span>
+          {(searchTerm || statusFilter !== "all" || capacityFilter !== "all") && (
+            <span className="text-blue-600 font-medium">
+              Filters applied
+            </span>
+          )}
+        </div>
+      </div>
+
+      {/* Data Table */}
       <DataTable
-        data={labs}
+        data={filteredLabs}
         columns={columns}
         searchKey="name"
         searchPlaceholder="Search labs..."
         emptyMessage="No labs found."
+        // loading={loading}
       />
 
+      {/* Create/Edit Dialog */}
       <Dialog open={isCreateOpen || isEditOpen} onOpenChange={(open) => {
         if (!open) {
           setIsCreateOpen(false);
