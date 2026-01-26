@@ -5,8 +5,8 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 
 // Pages
-import { Landing, SignIn, Register, Dashboard } from "./pages";
-import { AdminDashboard, AdminDegrees, AdminModules, AdminLabs, AdminStaffPage, AdminAssignments } from "./pages/Admin";
+import { Landing, SignIn, Register, Dashboard, PublicTimetable } from "./pages";
+import { AdminDashboard, AdminDegrees, AdminModules, AdminLabs, AdminStaffPage } from "./pages/Admin";
 import NotFound from "./pages/NotFound";
 import { StaffLabs, StaffDegrees, StaffModules } from "./pages/Staff";
 // Layouts
@@ -27,6 +27,7 @@ const App = () => (
           <Route path="/" element={<Landing />} />
           <Route path="/signin" element={<SignIn />} />
           <Route path="/register" element={<Register />} />
+          <Route path="/timetable" element={<PublicTimetable />} />
 
           {/* Dashboard Routes */}
           <Route path="/dashboard/" element={<DashboardLayout />}>
@@ -42,7 +43,6 @@ const App = () => (
             <Route path="modules" element={<AdminModules />} />
             <Route path="labs" element={<AdminLabs />} />
             <Route path="staff" element={<AdminStaffPage />} />
-            <Route path="assignments" element={<AdminAssignments />} />
           </Route>
 
           {/* Catch-all - must be last */}

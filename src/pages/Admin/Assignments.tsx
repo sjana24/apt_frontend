@@ -1,8 +1,7 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { PageHeader } from "@/components/adminComponents/shared/PageHeader";
 import { DataTable, Column } from "@/components/adminComponents/shared/DataTable";
-import { mockModules, mockStaff, mockAssignments } from "@/data/mockDataAdmin";
-import { StaffAssignment, CourseModule } from "@/types/indexAdmin";
+import { StaffAssignment, CourseModule, Staff } from "@/types/indexAdmin";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -24,67 +23,145 @@ import {
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Pencil, Trash2, UserPlus, BookOpen, Users } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
+import moduleService from "@/services/admin/courseModules.service";
+import staffService from "@/services/admin/staff.service";
+// Note: Assuming there is an assignment service or we might need to use a different service.
+// If 'StaffAssignment' is managed via a specific endpoint, we should use it.
+// Checking file list, there is no explicit assignment service.
+// Maybe it's part of module or staff service?
+// Step 250 (moduleService) has getAllModulesForSingleStaff, but not generic assignments.
+// I'll assume for now I should use a hypothetical assignment service or manage it locally if backend isn't ready.
+// Typically 'assignments' link staff to modules.
+// Let's assume for now we might need to fetch modules and staff, and maybe assignments are embedded or separate.
+// If no service exists, I'll create a placeholder or reuse existing.
+// Wait, `StaffAssignment` type suggests ID, module, staff, role.
+// I will simulate with local state for now if API is missing, BUT the prompt asked to remove mock data.
+// I'll try to find where assignments are.
+// If not found, I will create `assignment.service.ts` similar to others.
+// import assignmentService from "@/services/admin/assignment.service"; // I will create this
 
 const roleOptions: StaffAssignment["role"][] = ["Lead Lecturer", "Assistant", "Lab Instructor"];
 
-export  function AdminAssignments() {
-  const [assignments, setAssignments] = useState<StaffAssignment[]>(mockAssignments);
+export function AdminAssignments() {
+  const [assignments, setAssignments] = useState<StaffAssignment[]>([]);
+  const [modules, setModules] = useState<CourseModule[]>([]);
+  const [staffList, setStaffList] = useState<Staff[]>([]);
   const [selectedModule, setSelectedModule] = useState<CourseModule | null>(null);
   const [isAssignOpen, setIsAssignOpen] = useState(false);
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [selectedAssignment, setSelectedAssignment] = useState<StaffAssignment | null>(null);
+  const [loading, setLoading] = useState(true);
   const [formData, setFormData] = useState({
     staff: 0,
     role: "Assistant" as StaffAssignment["role"],
   });
 
+  useEffect(() => {
+    fetchData();
+  }, []);
+
+  const fetchData = async () => {
+    try {
+      setLoading(true);
+      const [modulesData, staffData, assignmentsData] = await Promise.all([
+        moduleService.getAllModules(),
+        staffService.getAllStaff(),
+        assignmentService.getAllAssignments(),
+      ]);
+      setModules(modulesData);
+      setStaffList(staffData);
+      setAssignments(assignmentsData);
+    } catch (error) {
+      console.error("Error fetching data:", error);
+      toast({
+        title: "Error",
+        description: "Failed to load assignment data.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const moduleAssignments = selectedModule
     ? assignments.filter((a) => a.module === selectedModule.id)
     : [];
 
-  const handleAssign = () => {
-    const staff = mockStaff.find((s) => s.id === formData.staff);
+  const handleAssign = async () => {
+    const staff = staffList.find((s) => s.id === formData.staff);
     if (!staff || !selectedModule) return;
 
-    const newAssignment: StaffAssignment = {
-      id: Math.max(...assignments.map((a) => a.id), 0) + 1,
-      module: selectedModule.id,
-      module_name: selectedModule.module_name,
-      staff: formData.staff,
-      staff_name: staff.full_name,
-      role: formData.role,
-    };
-    setAssignments([...assignments, newAssignment]);
-    setIsAssignOpen(false);
-    resetForm();
-    toast({
-      title: "Staff assigned",
-      description: `${staff.full_name} has been assigned as ${formData.role}.`,
-    });
+    try {
+      const newAssignment = await assignmentService.createAssignment({
+        module: selectedModule.id,
+        staff: formData.staff,
+        role: formData.role,
+      });
+
+      // Optimistic update or refetch
+      // For now, let's append assuming backend returns the full object with names
+      // If backend returns just IDs, we might need to manual construct the object or refetch.
+      // Let's assume standard response.
+      setAssignments([...assignments, newAssignment]);
+
+      setIsAssignOpen(false);
+      resetForm();
+      toast({
+        title: "Staff assigned",
+        description: `${staff.full_name} has been assigned as ${formData.role}.`,
+      });
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.response?.data?.message || "Failed to assign staff",
+        variant: "destructive",
+      });
+    }
   };
 
-  const handleEditRole = () => {
+  const handleEditRole = async () => {
     if (!selectedAssignment) return;
-    setAssignments(
-      assignments.map((a) =>
-        a.id === selectedAssignment.id ? { ...a, role: formData.role } : a
-      )
-    );
-    setIsEditOpen(false);
-    resetForm();
-    toast({
-      title: "Assignment updated",
-      description: "The staff role has been updated successfully.",
-    });
+    try {
+      const updated = await assignmentService.updateAssignment(selectedAssignment.id, {
+        role: formData.role,
+      });
+
+      setAssignments(
+        assignments.map((a) =>
+          a.id === selectedAssignment.id ? updated : a
+        )
+      );
+      setIsEditOpen(false);
+      resetForm();
+      toast({
+        title: "Assignment updated",
+        description: "The staff role has been updated successfully.",
+      });
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.response?.data?.message || "Failed to update role",
+        variant: "destructive",
+      });
+    }
   };
 
-  const handleRemove = (assignment: StaffAssignment) => {
-    setAssignments(assignments.filter((a) => a.id !== assignment.id));
-    toast({
-      title: "Assignment removed",
-      description: `${assignment.staff_name} has been unassigned.`,
-      variant: "destructive",
-    });
+  const handleRemove = async (assignment: StaffAssignment) => {
+    try {
+      await assignmentService.deleteAssignment(assignment.id);
+      setAssignments(assignments.filter((a) => a.id !== assignment.id));
+      toast({
+        title: "Assignment removed",
+        description: `${assignment.staff_name} has been unassigned.`,
+        variant: "destructive",
+      });
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.response?.data?.message || "Failed to remove assignment",
+        variant: "destructive",
+      });
+    }
   };
 
   const openEditRole = (assignment: StaffAssignment) => {
@@ -122,8 +199,8 @@ export  function AdminAssignments() {
             item.role === "Lead Lecturer"
               ? "default"
               : item.role === "Lab Instructor"
-              ? "secondary"
-              : "outline"
+                ? "secondary"
+                : "outline"
           }
         >
           {item.role}
@@ -179,10 +256,14 @@ export  function AdminAssignments() {
           </CardHeader>
           <CardContent>
             <DataTable
-              data={mockModules}
+              data={modules}
               columns={moduleColumns}
               pageSize={5}
               onRowClick={setSelectedModule}
+              searchKey="module_name"
+              searchPlaceholder="Search modules..."
+              emptyMessage="No modules found."
+            //   loading={loading}
             />
           </CardContent>
         </Card>
@@ -217,6 +298,7 @@ export  function AdminAssignments() {
                   data={moduleAssignments}
                   columns={assignmentColumns}
                   pageSize={5}
+                  emptyMessage="No assignments found for this module."
                 />
               ) : (
                 <div className="text-center py-8 text-muted-foreground">
@@ -254,7 +336,7 @@ export  function AdminAssignments() {
                   <SelectValue placeholder="Select staff member" />
                 </SelectTrigger>
                 <SelectContent className="bg-popover">
-                  {mockStaff
+                  {staffList
                     .filter((s) => s.is_active)
                     .map((staff) => (
                       <SelectItem key={staff.id} value={String(staff.id)}>

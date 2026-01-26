@@ -217,6 +217,7 @@ export function AdminLabs() {
   // TABLE COLUMNS
   // =========================
   const columns: Column<Lab>[] = [
+    { key: "lab_code", header: "Lab Code" },
     { key: "name", header: "Lab Name" },
     {
       key: "capacity",

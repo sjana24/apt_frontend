@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { PageHeader } from "@/components/adminComponents/shared/PageHeader";
 import { DataTable, Column } from "@/components/adminComponents/shared/DataTable";
-import { mockDegrees, mockModules } from "@/data/mockDataAdmin";
 import { Degree, CourseModule } from "@/types/indexAdmin";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -22,14 +21,16 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Pencil, Trash2, Eye, ChevronRight, BookOpen, Filter, Search, X } from "lucide-react";
+import { Pencil, Trash2, Eye, ChevronRight, Filter, Search, X, BookOpen } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import degreeService from "@/services/admin/degree.service";
+import moduleService from "@/services/admin/courseModules.service";
 
 export function AdminDegrees() {
   const [degrees, setDegrees] = useState<Degree[]>([]);
   const [filteredDegrees, setFilteredDegrees] = useState<Degree[]>([]);
   const [loading, setLoading] = useState(false);
+  const [modules, setModules] = useState<CourseModule[]>([]);
 
   // Filter states
   const [searchTerm, setSearchTerm] = useState("");
@@ -74,6 +75,23 @@ export function AdminDegrees() {
     fetchDegrees();
   }, []);
 
+  // Fetch modules when explorer opens (or pre-fetch if optimizing)
+  useEffect(() => {
+    if (isExplorerOpen) {
+      const fetchModules = async () => {
+        try {
+          // Ideally this should filter by degree ID on the server side
+          const data = await moduleService.getAllModules();
+          setModules(data);
+        } catch (error: any) {
+          console.error("Error fetching modules", error);
+        }
+      };
+      fetchModules();
+    }
+  }, [isExplorerOpen]);
+
+
   // Apply filters whenever filters or degrees change
   useEffect(() => {
     let result = degrees;
@@ -108,7 +126,7 @@ export function AdminDegrees() {
 
   // Get modules for selected degree
   const degreeModules = selectedDegree
-    ? mockModules.filter((m) => m.degree === selectedDegree.id)
+    ? modules.filter((m) => m.degree === selectedDegree.id)
     : [];
 
   const handleCreate = async (e?: React.MouseEvent) => {
@@ -387,7 +405,7 @@ export function AdminDegrees() {
         searchKey="degreeProgram"
         searchPlaceholder="Search degrees..."
         emptyMessage="No degree programs found. Create your first degree!"
-        // loading={loading}
+      // loading={loading}
       />
 
       {/* Create Dialog */}
