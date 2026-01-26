@@ -10,6 +10,7 @@ import Footer from '@/components/Footer';
 import { getWeekRange } from '@/middleware/getWeek';
 import timeTableService from '@/services/admin/timeTable.service';
 import { Badge } from '@/components/ui/badge';
+import TimetableModal from '@/components/studentTimeTable';
 
 // Define the time slots for the grid
 const TIME_SLOTS = [
@@ -68,6 +69,25 @@ export function Landing() {
     semester: "",
     date: new Date(), // Set default to today
   });
+
+
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  // Example data from your backend
+  // const timetableData: TimetableRow = [
+  //   {
+  //     "id": 11,
+  //     "degree_name": "BSc in Data Science",
+  //     "module_code": "CST 301",
+  //     "module_name": "Advanced Programming Techniques",
+  //     "lab_name": "Computer Lab 02",
+  //     "lab_code": "C2",
+  //     "day_of_week": 1,
+  //     "time_range": "08:00 - 09:00",
+  //     "primary_staff": { "staff_name": "Dr. Aruna Perera" },
+  //     // ... rest of your data
+  //   }
+  // ];
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [timetableData, setTimetableData] = useState<TimetableSlot[]>([]);
@@ -246,6 +266,7 @@ export function Landing() {
       }
 
       console.log("Extracted slots:", slots);
+      setIsModalOpen(true)
       setTimetableData(slots);
 
       // Transform to grid format
@@ -268,82 +289,8 @@ export function Landing() {
       console.error("Error fetching timetable:", err);
       setError(err.response?.data?.message || err.message || "Failed to fetch timetable data");
       
-      // Fallback to mock data for testing
-      // const mockWeekRange = { monday: '2026-03-09', friday: '2026-03-13' };
-      // const mockSlots: TimetableSlot[] = [
-      //   {
-      //     id: 1,
-      //     degree_name: "BSc in Computer Science",
-      //     module_name: "Database Management Systems",
-      //     lab_name: "Computer Lab 02",
-      //     created_by_name: "Dr. Smith",
-      //     slot_date: "2026-03-10", // Tuesday
-      //     day_of_week: 2,
-      //     time_range: "09:00 - 10:00",
-      //     note: "Operating Systems Lab",
-      //     degree: 2,
-      //     module: 2,
-      //     lab: 2
-      //   },
-      //   {
-      //     id: 2,
-      //     degree_name: "BSc in Computer Science",
-      //     module_name: "Database Management Systems",
-      //     lab_name: "Computer Lab 02",
-      //     created_by_name: "Dr. Smith",
-      //     slot_date: "2026-03-10", // Tuesday
-      //     day_of_week: 2,
-      //     time_range: "11:00 - 12:00",
-      //     note: "Operating Systems Lab",
-      //     degree: 2,
-      //     module: 2,
-      //     lab: 2
-      //   },
-      //   {
-      //     id: 3,
-      //     degree_name: "BSc in Computer Science",
-      //     module_name: "Database Management Systems",
-      //     lab_name: "Computer Lab 02",
-      //     created_by_name: "Dr. Smith",
-      //     slot_date: "2026-03-12", // Thursday
-      //     day_of_week: 4,
-      //     time_range: "11:00 - 12:00",
-      //     note: "Operating Systems Lab",
-      //     degree: 2,
-      //     module: 2,
-      //     lab: 2
-      //   },
-      //   {
-      //     id: 4,
-      //     degree_name: "BSc in Computer Science",
-      //     module_name: "Database Management Systems",
-      //     lab_name: "Computer Lab 02",
-      //     created_by_name: "Dr. Smith",
-      //     slot_date: "2026-03-12", // Thursday
-      //     day_of_week: 4,
-      //     time_range: "13:00 - 14:00",
-      //     note: "Operating Systems Lab",
-      //     degree: 2,
-      //     module: 2,
-      //     lab: 2
-      //   }
-      // ];
+   
       
-      // setTimetableData(mockSlots);
-      // const grid = transformDataToGrid(mockSlots, mockWeekRange);
-      // setTimetableGrid(grid);
-      // setSelectedWeekRange(mockWeekRange);
-      
-      // setDebugInfo({
-      //   weekRange: mockWeekRange,
-      //   slotCount: mockSlots.length,
-      //   slots: mockSlots.map(s => ({
-      //     date: s.slot_date,
-      //     day: s.day_of_week,
-      //     time: s.time_range,
-      //     module: s.module_name
-      //   }))
-      // });
     } finally {
       setIsSubmitting(false);
     }
@@ -717,7 +664,16 @@ export function Landing() {
         </section>
       )}
 
+
+
       <Footer />
+      <TimetableModal 
+        isOpen={isModalOpen} 
+        onClose={() => setIsModalOpen(false)} 
+        // setTimetableData
+        data={timetableData}
+        degreeName={timetableData[0]?.degree_name}
+      />
     </div>
   );
 }

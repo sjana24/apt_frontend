@@ -26,12 +26,10 @@ import authService from "@/services/auth/auth.service";
 
 const navigationItems = [
   { title: "Dashboard", url: "/admin", icon: LayoutDashboard },
-  { title: "Staff", url: "admin/staff", icon: Users },
-  { title: "Degrees", url: "admin/degrees", icon: GraduationCap },
-  { title: "Labs", url: "admin/labs", icon: FlaskConical },
-  { title: "Modules", url: "admin/modules", icon: BookOpen },
-
-
+  { title: "Staff", url: "/admin/staff", icon: Users },
+  { title: "Degrees", url: "/admin/degrees", icon: GraduationCap },
+  { title: "Labs", url: "/admin/labs", icon: FlaskConical },
+  { title: "Modules", url: "/admin/modules", icon: BookOpen },
 ];
 
 export function AdminAppSidebar() {
@@ -45,8 +43,8 @@ export function AdminAppSidebar() {
     return location.pathname.startsWith(path);
   };
 
-  const handleLogout = async() => {
-     const response = await authService.logout();
+  const handleLogout = async () => {
+    const response = await authService.logout();
 
     console.log("response", response);
 

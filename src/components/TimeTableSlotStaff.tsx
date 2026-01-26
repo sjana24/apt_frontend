@@ -19,7 +19,7 @@ import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { CreateTimetableSlotData, GridCell, SelectDateDialogProps, TimetableRow, TimetableSlot } from "@/interfaces";
-import { TIME_SLOTS, DAY_COLORS } from "@/constansts";
+import { TIME_SLOTS, DAY_COLORS } from "@/constants";
 
 /* =========================
    Helper: Get Monday–Friday
@@ -264,13 +264,13 @@ export function SelectDateDialog({
     };
 
     // Handle cell click for adding new slot
-    const handleCellClick =async (time: string, day: string, dayIndex: number) => {
+    const handleCellClick = async (time: string, day: string, dayIndex: number) => {
         if (!currentWeek || !degree) return;
 
         const mondayDate = parseISO(currentWeek.monday);
         const slotDate = new Date(mondayDate);
         slotDate.setDate(mondayDate.getDate() + dayIndex);
-await fetchCreateFormData();
+        await fetchCreateFormData();
         setNewSlotData({
             degree: degree.id,
             module: 0,

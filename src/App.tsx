@@ -36,22 +36,17 @@ const App = () => (
             <Route path="staff/course" element={<StaffModules />} />
           </Route>
 
-          {/* Room Booking Routes */}
-          {/* <Route path="/spaces" element={<Spaces />} /> */}
-          {/* <Route path="/room/:id" element={<RoomAvailability />} /> */}
-          {/* <Route path="/bookings" element={<Spaces />} /> */}
-
-          {/* Catch-all */}
-          <Route path="*" element={<NotFound />} />
-
-          <Route path="admin" element={<AdminDashboardLayout />}>
+          <Route path="/admin" element={<AdminDashboardLayout />}>
             <Route index element={<AdminDashboard />} />
-            <Route path="admin/degrees" element={<AdminDegrees />} />
-            <Route path="admin/modules" element={<AdminModules />} />
-            <Route path="admin/labs" element={<AdminLabs />} />
-            <Route path="admin/staff" element={<AdminStaffPage />} />
-            <Route path="admin/assignments" element={<AdminAssignments />} />
+            <Route path="degrees" element={<AdminDegrees />} />
+            <Route path="modules" element={<AdminModules />} />
+            <Route path="labs" element={<AdminLabs />} />
+            <Route path="staff" element={<AdminStaffPage />} />
+            <Route path="assignments" element={<AdminAssignments />} />
           </Route>
+
+          {/* Catch-all - must be last */}
+          <Route path="*" element={<NotFound />} />
 
         </Routes>
 

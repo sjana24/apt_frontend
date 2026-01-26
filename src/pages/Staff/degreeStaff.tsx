@@ -27,7 +27,7 @@ import { Pencil, Trash2, Eye, ChevronRight, BookOpen, MapPin } from "lucide-reac
 import { toast } from "@/hooks/use-toast";
 import degreeService from "@/services/admin/degree.service";
 import timeTableService from "@/services/admin/timeTable.service";
-import { SelectDateDialog } from "@/components/TimeTableSlotSatff";
+import { SelectDateDialog } from "@/components/TimeTableSlotStaff";
 import { getWeekRange } from "@/middleware/getWeek";
 
 export interface TimetableRow {
@@ -102,14 +102,14 @@ export const mockTimetable: TimetableRow[] = [
 export function StaffDegrees() {
     const [degrees, setDegrees] = useState<Degree[]>([]);
     const [loading, setLoading] = useState(false);
-    const [erroe, setError] = useState(false);
+    const [error, setError] = useState(false);
 
     const [isDateDialogOpen, setIsDateDialogOpen] = useState(false);
     const [pendingDegree, setPendingDegree] = useState<Degree | null>(null);
     const [selectedDate, setSelectedDate] = useState<string | null>(null);
 
 
-    // const [degrees, setDegrees] = useState<Degree[]>(mockDegrees);
+
     const [isCreateOpen, setIsCreateOpen] = useState(false);
     const [isEditOpen, setIsEditOpen] = useState(false);
     const [isExplorerOpen, setIsExplorerOpen] = useState(false);
@@ -121,56 +121,7 @@ export function StaffDegrees() {
         academicYear: new Date().getFullYear(),
     });
 
-    // Updated fetchTimetableData function in TimetableGrid.tsx
-    const fetchTimetableData = async () => {
-        try {
-            setLoading(true);
-            setError(null);
 
-            const degreeId = 2;
-            const startDate = "2026-03-09";
-            const endDate = "2026-03-15";
-
-            // Using the POST endpoint
-            const data = await timeTableService.getByDegreeAndRange(
-                degreeId,
-                startDate,
-                endDate
-            );
-
-            // setTimetableData(data);
-
-            // Set first date as selected if available
-            // if (data.timetable && Object.keys(data.timetable).length > 0) {
-            //     setSelectedDate(Object.keys(data.timetable)[0]);
-            // }
-        } catch (err: any) {
-            console.error('Full error object:', err);
-
-            // Handle different error types
-            if (err.response) {
-                // Server responded with error status
-                // setError(`Server error: ${err.response.status} - ${err.response.data?.message || 'Unknown error'}`);
-            } else if (err.request) {
-                // Request made but no response
-                // setError('No response from server. Please check your connection.');
-            } else {
-                // Error in setting up request
-                setError(err.message || 'Failed to fetch timetable data');
-            }
-
-            // Fallback to empty data structure
-            // setTimetableData({
-            //     degree: null,
-            //     start_date: startDate,
-            //     end_date: endDate,
-            //     timetable: {},
-            //     total_slots: 0
-            // });
-        } finally {
-            setLoading(false);
-        }
-    };
 
     useEffect(() => {
         const fetchDegrees = async () => {
@@ -200,84 +151,8 @@ export function StaffDegrees() {
         ? mockModules.filter((m) => m.degree === selectedDegree.id)
         : [];
 
-    const handleCreate1 = async (e) => {
-        console.log("Save clicked", formData)
-    };
-    const handleCreate = async (e?: React.MouseEvent) => {
-        e?.preventDefault();
-
-        try {
-            const response = await degreeService.createDegree(formData);
-
-            setDegrees((prev) => [...prev, response]);
-
-            toast({
-                title: "Degree created",
-                description: `${response.degreeProgram} added successfully.`,
-            });
-
-            setIsCreateOpen(false);
-        } catch (error: any) {
-            toast({
-                title: "Error",
-                description:
-                    error.response?.data?.message || "Failed to create degree",
-                variant: "destructive",
-            });
-        }
-    };
 
 
-    const handleEdit = async () => {
-        if (!selectedDegree?.id) return;
-
-        try {
-            // const response = await degreeService.updateDegree(
-            //   selectedDegree.id,
-            //   formData
-            // );
-
-            // setDegrees((prev) =>
-            //   prev.map((d) => (d.id === response.id ? response : d))
-            // );
-
-            // toast({
-            //   title: "Degree updated",
-            //   description: `${response.degreeProgram} updated successfully.`,
-            // });
-
-            // setIsEditOpen(false);
-        } catch (error: any) {
-            toast({
-                title: "Error",
-                description:
-                    error.response?.data?.message || "Failed to update degree",
-                variant: "destructive",
-            });
-        }
-    };
-
-
-    const handleDelete = async (degree: Degree) => {
-        try {
-            // await degreeService.deleteDegree(degree.id);
-
-            // setDegrees((prev) => prev.filter((d) => d.id !== degree.id));
-
-            // toast({
-            //   title: "Degree deleted",
-            //   description: `${degree.degreeProgram} has been removed.`,
-            //   variant: "destructive",
-            // });
-        } catch (error: any) {
-            toast({
-                title: "Error",
-                description:
-                    error.response?.data?.message || "Failed to delete degree",
-                variant: "destructive",
-            });
-        }
-    };
 
 
     const openEdit = (degree: Degree) => {
@@ -347,17 +222,7 @@ export function StaffDegrees() {
                     >
                         <Pencil className="h-4 w-4" />
                     </Button>
-                    <Button
-                        type="button"
-                        variant="ghost"
-                        size="icon"
-                        onClick={(e) => {
-                            e.stopPropagation();
-                            handleDelete(item);
-                        }}
-                    >
-                        <Trash2 className="h-4 w-4 text-destructive" />
-                    </Button>
+
                 </div>
             ),
         },
@@ -382,16 +247,16 @@ export function StaffDegrees() {
 
         setSelectedDate(date);
         // Convert string → Date
-    const selected = new Date(date);
+        const selected = new Date(date);
 
-    // Get Monday & Friday
-    const weekRange = getWeekRange(selected);
+        // Get Monday & Friday
+        const weekRange = getWeekRange(selected);
 
-    if (weekRange) {
-        console.log("Week Start (Monday):", weekRange.monday);
-        console.log("Week End (Friday):", weekRange.friday);
-        console.log("Week End (Friday):",pendingDegree.id);
-    }
+        if (weekRange) {
+            console.log("Week Start (Monday):", weekRange.monday);
+            console.log("Week End (Friday):", weekRange.friday);
+            console.log("Week End (Friday):", pendingDegree.id);
+        }
 
         if (pendingDegree) {
             // openExplorer(pendingDegree); // existing function
@@ -409,13 +274,6 @@ export function StaffDegrees() {
 
     return (
         <div className="space-y-6">
-            <PageHeader
-                title="Degrees"
-                description="Manage degree programs and explore their modules."
-                actionLabel="Add Degree"
-                onAction={() => setIsCreateOpen(true)}
-            />
-
             <DataTable
                 data={degrees}
                 columns={columns}
@@ -631,7 +489,7 @@ export function StaffDegrees() {
             </Dialog>
 
             <SelectDateDialog
-            degree={pendingDegree}
+                degree={pendingDegree}
                 open={isDateDialogOpen}
                 onClose={() => setIsDateDialogOpen(false)}
                 onConfirm={handleDateConfirm}

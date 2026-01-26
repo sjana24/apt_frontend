@@ -16,8 +16,8 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { CreateTimetableSlotData, GridCell, StaffModuleAssignment, TimeTabeSlotLabStaffProps, TimetableRow, TimetableSlot } from "@/interfaces";
-import { TIME_SLOTS, DAY_COLORS } from "@/constansts";
+import { CreateTimetableSlotData, GridCell, StaffModuleAssignment, TimeTableSlotLabStaffProps, TimetableRow, TimetableSlot } from "@/interfaces";
+import { TIME_SLOTS, DAY_COLORS } from "@/constants";
 
 /* =========================
    Helper: Get Monday–Friday
@@ -39,12 +39,12 @@ function getWeekRange(date: Date) {
     };
 }
 
-export function TimeTabeSlotLabStaff({
+export function TimeTableSlotLabStaff({
     open,
     onClose,
     onConfirm,
     lab,
-}: TimeTabeSlotLabStaffProps) {
+}: TimeTableSlotLabStaffProps) {
     const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
     const [currentWeek, setCurrentWeek] = useState<{
         monday: string;
@@ -317,7 +317,7 @@ export function TimeTabeSlotLabStaff({
         setNewSlotData({
             lab: lab.id,
             module: 0,
-            degree:0,
+            degree: 0,
             slot_date: format(slotDate, 'yyyy-MM-dd'),
             day_of_week: dayIndex + 1,
             time_range: time,
