@@ -56,7 +56,7 @@ const Sidebar = () => {
   const confirmLogout = () => {
     authService.logout();
     toast({
-      title: "Logged out",
+      title: "Logging out...",
       description: "You have been successfully logged out.",
     });
     navigate("/signin");
