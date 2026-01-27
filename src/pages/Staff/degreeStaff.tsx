@@ -117,7 +117,7 @@ export function StaffDegrees() {
             setLoading(true);
 
             try {
-                const staffId = localStorage.getItem('userId');
+                const staffId = sessionStorage.getItem('userId');
                 if (!staffId) {
                     toast({
                         title: "Error",

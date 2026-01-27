@@ -56,7 +56,7 @@ export function StaffModules() {
     const fetchData = async () => {
       setLoading(true);
       try {
-        const staffId = localStorage.getItem('userId');
+        const staffId = sessionStorage.getItem('userId');
         if (!staffId) {
           toast({
             title: "Error",
@@ -218,7 +218,7 @@ export function StaffModules() {
   // =========================
   const handleCreate = useCallback(async () => {
     try {
-      const staffId = localStorage.getItem('userId');
+      const staffId = sessionStorage.getItem('userId');
       if (!staffId) return;
 
       const moduleData = {
@@ -271,7 +271,7 @@ export function StaffModules() {
       // const response = await moduleService.updateAssignment(selectedAssignment.id, updateData);
 
       // For now, simulate update and refresh
-      const staffId = localStorage.getItem('userId');
+      const staffId = sessionStorage.getItem('userId');
       if (!staffId) return;
 
       const refreshedData = await moduleService.getAllModulesForSingleStaff(parseInt(staffId));

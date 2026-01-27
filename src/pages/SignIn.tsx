@@ -153,9 +153,6 @@ export function SignIn() {
                     Remember me
                   </label>
                 </div>
-                <Link to="/forgot-password" className="text-sm font-medium text-primary hover:underline">
-                  Forgot password?
-                </Link>
               </div>
 
               {/* Submit Button */}
@@ -171,16 +168,13 @@ export function SignIn() {
             </form>
 
             {/* Support Link */}
-            <p className="mt-6 text-center text-sm text-muted-foreground">
-              Having trouble?{' '}
-              <Link to="/contact" className="font-medium text-primary hover:underline">
-                Contact IT Support
-              </Link>
-            </p>
+            <div className="text-center text-sm text-muted-foreground">
+              Official Uva Wellassa University Portal
+            </div>
 
             {/* Footer */}
             <p className="mt-8 text-center text-xs text-muted-foreground">
-              © 2026 University Booking System. All rights reserved.
+              © 2026 Uva Wellassa University of Sri Lanka.
             </p>
           </div>
         </div>

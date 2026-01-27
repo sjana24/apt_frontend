@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { GraduationCap, LogIn } from 'lucide-react';
+import { GraduationCap, LogIn, HelpCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 interface NavbarProps {
@@ -9,21 +9,16 @@ interface NavbarProps {
 const Navbar = ({ variant = 'landing' }: NavbarProps) => {
   if (variant === 'auth') {
     return (
-      <nav className="border-b border-border bg-card">
-        <div className="container mx-auto flex h-16 items-center justify-between px-4">
-          <Link to="/" className="flex items-center gap-2">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary">
+      <nav className="border-b border-border bg-card/50 backdrop-blur-md sticky top-0 z-50">
+        <div className="container mx-auto flex h-16 items-center justify-between px-6">
+          <Link to="/" className="flex items-center gap-2.5 group">
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary shadow-lg shadow-primary/20 group-hover:scale-105 transition-transform">
               <GraduationCap className="h-5 w-5 text-primary-foreground" />
             </div>
-            <span className="text-lg font-semibold text-foreground">UniBook</span>
+            <span className="text-xl font-bold tracking-tight text-foreground">UWU <span className="text-primary">Portal</span></span>
           </Link>
-          <div className="flex items-center gap-3">
-            <Button variant="outline" asChild>
-              <Link to="/contact">Contact IT</Link>
-            </Button>
-            <Button asChild>
-              <Link to="/help">Help Center</Link>
-            </Button>
+          <div className="flex items-center gap-4">
+            {/* Removed Support Button as page doesn't exist */}
           </div>
         </div>
       </nav>
@@ -31,31 +26,29 @@ const Navbar = ({ variant = 'landing' }: NavbarProps) => {
   }
 
   return (
-    <nav className="border-b border-border bg-card">
-      <div className="container mx-auto flex h-16 items-center justify-between px-4">
-        <Link to="/" className="flex items-center gap-2">
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary">
-            <GraduationCap className="h-5 w-5 text-primary-foreground" />
+    <nav className="border-b border-border bg-card/50 backdrop-blur-md sticky top-0 z-50">
+      <div className="container mx-auto flex h-20 items-center justify-between px-6">
+        <Link to="/" className="flex items-center gap-2.5 group">
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary shadow-lg shadow-primary/20 group-hover:scale-105 transition-transform">
+            <GraduationCap className="h-6 w-6 text-primary-foreground" />
           </div>
-          <span className="text-lg font-semibold text-foreground">Campus Scheduler</span>
+          <span className="text-2xl font-bold tracking-tight text-foreground">UWU <span className="text-primary">Portal</span></span>
         </Link>
-        
-        <div className="hidden items-center gap-8 md:flex">
-          <Link to="/" className="nav-link">Home</Link>
-          {/* <Link to="/timetable" className="nav-link">Timetable</Link> */}
-          {/* <Link to="/spaces" className="nav-link">Features</Link> */}
-          {/* <Link to="/contact" className="nav-link">Contact</Link> */}
-          {/* <Link to="/signin"><LogIn className="mr-2 h-5 w-5" />Log In </Link> */}
+
+        <div className="flex items-center gap-4">
+          <div className="hidden items-center gap-2 md:flex mr-4">
+            <Button variant="ghost" asChild className="font-semibold hover:bg-primary/5">
+              <Link to="/">Home</Link>
+            </Button>
+          </div>
+
+          <Button variant="outline" asChild className="border-primary/20 hover:bg-primary/5 font-bold h-11 px-6 rounded-xl">
+            <Link to="/signin" className="flex items-center gap-2">
+              <LogIn className="h-4 w-4" />
+              Staff Sign In
+            </Link>
+          </Button>
         </div>
-
- <Button variant="outline" asChild>
-           <Link to="/signin"><LogIn className="mr-2 h-5 w-5" />Log In </Link>
-        </Button>
-
-        <Button variant="outline" asChild>
-          <Link to="/help">Help/Support</Link>
-        </Button>
-        
       </div>
     </nav>
   );

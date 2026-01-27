@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { LoadingButton } from "@/components/ui/LoadingButton";
 import { timetableFilterSchema, type TimetableFilterInput } from "@/schemas/admin.schema";
 import { Degree } from "@/types/indexAdmin";
-import { format } from "date-fns";
+import { format, startOfWeek, addDays } from "date-fns";
 
 interface TimetableFiltersProps {
     degrees: Degree[];
@@ -26,14 +26,12 @@ export function TimetableFilters({ degrees, onSearch, loading }: TimetableFilter
         watch,
         formState: { errors },
     } = useForm<TimetableFilterInput>({
-        resolver: zodResolver(timetableFilterSchema),
+        // resolver: zodResolver(timetableFilterSchema), // We'll handle custom range logic
         defaultValues: {
             startDate: format(new Date(), 'yyyy-MM-dd'),
-            endDate: format(new Date(), 'yyyy-MM-dd'),
+            endDate: format(new Date(), 'yyyy-MM-dd'), // This will be calculated on submit
         },
     });
-
-    const selectedDegreeId = watch("degree");
 
     const handleDegreeChange = (degreeId: string) => {
         const degree = degrees.find(d => d.id === parseInt(degreeId));
@@ -46,33 +44,42 @@ export function TimetableFilters({ degrees, onSearch, loading }: TimetableFilter
         }
     };
 
-    const onSubmit = (data: TimetableFilterInput) => {
-        onSearch(data);
+    const onSubmit = (data: any) => {
+        // Calculate the Monday and Friday of the week for the selected date
+        const selectedDate = new Date(data.startDate);
+        const monday = startOfWeek(selectedDate, { weekStartsOn: 1 });
+        const friday = addDays(monday, 4);
+
+        onSearch({
+            ...data,
+            startDate: format(monday, 'yyyy-MM-dd'),
+            endDate: format(friday, 'yyyy-MM-dd')
+        });
     };
 
     return (
-        <Card className="w-full max-w-4xl mx-auto">
-            <CardHeader className="text-center">
+        <Card className="w-full max-w-4xl mx-auto border-0 shadow-none bg-transparent">
+            {/* <CardHeader className="text-center pb-8 p-0">
                 <CardTitle className="text-2xl sm:text-3xl">View Your Timetable</CardTitle>
                 <CardDescription className="text-base">
                     Select your degree program to view the weekly schedule
                 </CardDescription>
-            </CardHeader>
-            <CardContent>
-                <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+            </CardHeader> */}
+            <CardContent className="p-0">
+                <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
                     {/* Degree Selection */}
-                    <div>
-                        <Label htmlFor="degree" className="flex items-center gap-2">
-                            <GraduationCap className="h-4 w-4" />
+                    <div className="space-y-3">
+                        <Label htmlFor="degree" className="flex items-center gap-2 text-sm font-bold uppercase tracking-wider text-muted-foreground">
+                            <GraduationCap className="h-4 w-4 text-primary" />
                             Degree Program
                         </Label>
                         <Select onValueChange={handleDegreeChange}>
-                            <SelectTrigger className="mt-1.5" id="degree">
+                            <SelectTrigger className="mt-1.5 h-14 rounded-2xl border-white/20 bg-white/5 backdrop-blur-sm transition-all focus:ring-primary/20" id="degree">
                                 <SelectValue placeholder="Select your degree program" />
                             </SelectTrigger>
-                            <SelectContent>
+                            <SelectContent className="rounded-2xl border-white/20 bg-white/10 backdrop-blur-xl">
                                 {degrees.map((degree) => (
-                                    <SelectItem key={degree.id} value={degree.id.toString()}>
+                                    <SelectItem key={degree.id} value={degree.id.toString()} className="hover:bg-primary/10 transition-colors">
                                         {degree.degreeProgram}
                                     </SelectItem>
                                 ))}
@@ -86,40 +93,34 @@ export function TimetableFilters({ degrees, onSearch, loading }: TimetableFilter
                         )}
                     </div>
 
-                    {/* Level and Semester - Side by side on desktop */}
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div>
-                            <Label htmlFor="level" className="flex items-center gap-2">
-                                <School className="h-4 w-4" />
-                                Level
+                    {/* Level and Semester */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                        <div className="space-y-3">
+                            <Label htmlFor="level" className="flex items-center gap-2 text-sm font-bold uppercase tracking-wider text-muted-foreground">
+                                <School className="h-4 w-4 text-primary" />
+                                Academic Level
                             </Label>
                             <Select
                                 value={selectedDegree?.level || ""}
                                 onValueChange={(value) => setValue("level", value)}
                                 disabled={!selectedDegree}
                             >
-                                <SelectTrigger className="mt-1.5" id="level">
+                                <SelectTrigger className="mt-1.5 h-14 rounded-2xl border-white/20 bg-white/5 backdrop-blur-sm" id="level">
                                     <SelectValue placeholder="Select level" />
                                 </SelectTrigger>
-                                <SelectContent>
-                                    {["1", "2", "3", "4", "5", "6"].map((level) => (
-                                        <SelectItem key={level} value={level}>\
+                                <SelectContent className="rounded-2xl border-white/20 bg-white/10 backdrop-blur-xl">
+                                    {["100", "200", "300", "400"].map((level) => (
+                                        <SelectItem key={level} value={level}>
                                             Level {level}
                                         </SelectItem>
                                     ))}
                                 </SelectContent>
                             </Select>
-                            {errors.level && (
-                                <p className="mt-1.5 text-sm text-destructive flex items-center gap-1">
-                                    <AlertCircle className="h-3.5 w-3.5" />
-                                    {errors.level.message}
-                                </p>
-                            )}
                         </div>
 
-                        <div>
-                            <Label htmlFor="semester" className="flex items-center gap-2">
-                                <BookOpen className="h-4 w-4" />
+                        <div className="space-y-3">
+                            <Label htmlFor="semester" className="flex items-center gap-2 text-sm font-bold uppercase tracking-wider text-muted-foreground">
+                                <BookOpen className="h-4 w-4 text-primary" />
                                 Semester
                             </Label>
                             <Select
@@ -127,10 +128,10 @@ export function TimetableFilters({ degrees, onSearch, loading }: TimetableFilter
                                 onValueChange={(value) => setValue("semester", value)}
                                 disabled={!selectedDegree}
                             >
-                                <SelectTrigger className="mt-1.5" id="semester">
+                                <SelectTrigger className="mt-1.5 h-14 rounded-2xl border-white/20 bg-white/5 backdrop-blur-sm" id="semester">
                                     <SelectValue placeholder="Select semester" />
                                 </SelectTrigger>
-                                <SelectContent>
+                                <SelectContent className="rounded-2xl border-white/20 bg-white/10 backdrop-blur-xl">
                                     {["1", "2"].map((sem) => (
                                         <SelectItem key={sem} value={sem}>
                                             Semester {sem}
@@ -138,63 +139,35 @@ export function TimetableFilters({ degrees, onSearch, loading }: TimetableFilter
                                     ))}
                                 </SelectContent>
                             </Select>
-                            {errors.semester && (
-                                <p className="mt-1.5 text-sm text-destructive flex items-center gap-1">
-                                    <AlertCircle className="h-3.5 w-3.5" />
-                                    {errors.semester.message}
-                                </p>
-                            )}
                         </div>
                     </div>
 
-                    {/* Date Range */}
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div>
-                            <Label htmlFor="startDate" className="flex items-center gap-2">
-                                <Calendar className="h-4 w-4" />
-                                Start Date
-                            </Label>
+                    {/* Date Selection - Single Week Picker */}
+                    <div className="space-y-3">
+                        <Label htmlFor="startDate" className="flex items-center gap-2 text-sm font-bold uppercase tracking-wider text-muted-foreground">
+                            <Calendar className="h-4 w-4 text-primary" />
+                            Select Week (Any Day)
+                        </Label>
+                        <div className="relative group">
                             <input
                                 type="date"
                                 id="startDate"
-                                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 mt-1.5"
+                                className="flex h-14 w-full rounded-2xl border border-white/20 bg-white/5 px-4 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/20 hover:bg-white/10 transition-all cursor-pointer"
                                 {...register("startDate")}
                             />
-                            {errors.startDate && (
-                                <p className="mt-1.5 text-sm text-destructive flex items-center gap-1">
-                                    <AlertCircle className="h-3.5 w-3.5" />
-                                    {errors.startDate.message}
-                                </p>
-                            )}
+                            <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none group-hover:scale-110 transition-transform">
+                                <Calendar className="h-5 w-5 text-primary opacity-50" />
+                            </div>
                         </div>
-
-                        <div>
-                            <Label htmlFor="endDate" className="flex items-center gap-2">
-                                <Calendar className="h-4 w-4" />
-                                End Date
-                            </Label>
-                            <input
-                                type="date"
-                                id="endDate"
-                                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 mt-1.5"
-                                {...register("endDate")}
-                            />
-                            {errors.endDate && (
-                                <p className="mt-1.5 text-sm text-destructive flex items-center gap-1">
-                                    <AlertCircle className="h-3.5 w-3.5" />
-                                    {errors.endDate.message}
-                                </p>
-                            )}
-                        </div>
+                        <p className="text-[10px] text-muted-foreground pt-1">We'll automatically show the full week for your selection.</p>
                     </div>
 
                     {/* Submit Button */}
                     <LoadingButton
                         type="submit"
                         loading={loading}
-                        loadingText="Loading timetable..."
-                        className="w-full"
-                        size="lg"
+                        loadingText="Gathering timetable..."
+                        className="w-full h-16 rounded-2xl text-lg font-bold shadow-2xl shadow-primary/20 hover:scale-[1.01] transition-all bg-primary hover:bg-primary/90"
                     >
                         View Timetable
                     </LoadingButton>

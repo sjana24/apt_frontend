@@ -5,7 +5,7 @@ import { ChevronDown, Clock } from 'lucide-react';
 import { format } from 'date-fns';
 
 const DashboardLayout = () => {
-  const currentUser = localStorage.getItem('fullname');
+  const currentUser = sessionStorage.getItem('fullname');
   const [currentTime, setCurrentTime] = useState(new Date());
 
   useEffect(() => {
@@ -60,8 +60,10 @@ const DashboardLayout = () => {
         </header>
 
         {/* Main Content */}
-        <main className="flex-1 overflow-auto p-6">
-          <Outlet />
+        <main className="flex-1 overflow-auto bg-slate-50/50">
+          <div className="max-w-[1600px] mx-auto p-8 lg:p-10 space-y-8 animate-in fade-in duration-700">
+            <Outlet />
+          </div>
         </main>
       </div>
     </div>
