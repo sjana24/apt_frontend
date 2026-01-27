@@ -117,8 +117,28 @@ export function StaffDegrees() {
             setLoading(true);
 
             try {
-                const data = await degreeService.getAllDegrees();
-                setDegrees(data);
+                const staffId = localStorage.getItem('userId');
+                if (!staffId) {
+                    toast({
+                        title: "Error",
+                        description: "User ID not found. Please log in again.",
+                        variant: "destructive",
+                    });
+                    return;
+                }
+                const response = await degreeService.getDegreesByStaff(parseInt(staffId));
+
+                // Extract unique degrees from assignments
+                const assignments = Array.isArray(response) ? response : response?.data || [];
+                const uniqueDegrees = Array.from(
+                    new Map(
+                        assignments
+                            .filter((a: any) => a.module_details?.degree_details)
+                            .map((a: any) => [a.module_details.degree_details.id, a.module_details.degree_details])
+                    ).values()
+                ) as Degree[];
+
+                setDegrees(uniqueDegrees);
             } catch (error: any) {
                 toast({
                     title: "Error",

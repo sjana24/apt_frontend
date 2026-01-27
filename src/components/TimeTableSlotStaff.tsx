@@ -8,7 +8,7 @@ import { cn } from "@/lib/utils";
 import { Calendar } from "@/components/ui/calendar";
 import { Calendar as CalendarIcon, Clock, AlertCircle, BookOpen, ChevronLeft, ChevronRight, Printer, Download, X, Menu, Maximize2, Minimize2, RefreshCw, Grid3x3, Filter, Building, Plus, Save, Trash2, Edit2 } from "lucide-react";
 import { format, parseISO, eachDayOfInterval } from "date-fns";
-import { Degree, Lab } from "@/types/indexAdmin";
+import { Degree, Lab, StaffModuleAssignment } from "@/types/indexAdmin";
 import { CourseModule } from "@/types/indexAdmin";
 import timeTableService from "@/services/admin/timeTable.service";
 import moduleService from "@/services/admin/courseModules.service";
@@ -61,7 +61,7 @@ export function SelectDateDialog({
 
     // State for adding new slots
     const [editingCell, setEditingCell] = useState<{ time: string, day: string, dayIndex: number } | null>(null);
-    const [modules, setModules] = useState<CourseModule[]>([]);
+    const [modules, setModules] = useState<StaffModuleAssignment[]>([]);
     const [labs, setLabs] = useState<Lab[]>([]);
     const [loadingModules, setLoadingModules] = useState(false);
     const [loadingLabs, setLoadingLabs] = useState(false);
@@ -196,31 +196,42 @@ export function SelectDateDialog({
     }, [open, degree]);
 
     // Fetch modules
-    const fetchCreateFormData = async () => {
+    const fetchCreateFormData = async (dateOverride?: string, timeOverride?: string) => {
         if (!degree) return;
+
+        const targetDate = dateOverride || newSlotData.slot_date;
+        const targetTime = timeOverride || newSlotData.time_range;
 
         setLoadingModules(true);
         try {
-            // newSlotData.slot_date = "2026-01-19"
-            // newSlotData.time_range = "08:00 - 09:00"
-            const response = await moduleService.getAllModulesForSingleStaffForDegree(userId, newSlotData.degree);
-            const availabilityData = await timeTableService.checkAvalibilityForSlot(newSlotData.slot_date, newSlotData.time_range);
-
-            // const response = await moduleService.getModuleById(degree.id);
-            // const availabilityData = Array.isArray(availabilityResponse) ? availabilityResponse : availabilityResponse?.data || [];
+            const response = await moduleService.getAllModulesForSingleStaffForDegree(userId, degree.id);
             const data = Array.isArray(response) ? response : response?.data;
-            if (data && availabilityData) {
-                console.log("xxxx", data);
-                console.log("xxxx", availabilityData);
+
+            if (data) {
                 setModules(data);
-                setLabs(availabilityData.labs)
             } else {
                 setModules([]);
+            }
+
+            // Only fetch labs if we have date and time
+            if (targetDate && targetTime) {
+                setLoadingLabs(true);
+                const availabilityResponse = await timeTableService.checkAvalibilityForSlot(targetDate, targetTime);
+                const availabilityData = availabilityResponse?.data || availabilityResponse;
+
+                if (availabilityData && availabilityData.labs) {
+                    setLabs(availabilityData.labs);
+                } else {
+                    setLabs([]);
+                }
+                setLoadingLabs(false);
+            } else {
                 setLabs([]);
             }
-            // setModules(Array.isArray(response) ? response : response?.data || []);
+
         } catch (err) {
-            console.error("Error fetching modules:", err);
+            console.error("Error fetching data:", err);
+            setLabs([]);
         } finally {
             setLoadingModules(false);
         }
@@ -270,12 +281,16 @@ export function SelectDateDialog({
         const mondayDate = parseISO(currentWeek.monday);
         const slotDate = new Date(mondayDate);
         slotDate.setDate(mondayDate.getDate() + dayIndex);
-        await fetchCreateFormData();
+        const dateStr = format(slotDate, 'yyyy-MM-dd');
+
+        // Pass date/time to fetch available labs explicitly
+        await fetchCreateFormData(dateStr, time);
+
         setNewSlotData({
             degree: degree.id,
             module: 0,
             lab: 0,
-            slot_date: format(slotDate, 'yyyy-MM-dd'),
+            slot_date: dateStr,
             day_of_week: dayIndex + 1,
             time_range: time,
             note: ""
@@ -518,9 +533,9 @@ export function SelectDateDialog({
                                         ) : modules.length === 0 ? (
                                             <SelectItem value="none" disabled>No modules found</SelectItem>
                                         ) : (
-                                            modules.map((module) => (
-                                                <SelectItem key={module.id} value={module.id.toString()}>
-                                                    {module.id} - {module.staff_name}
+                                            modules.map((moduleItem) => (
+                                                <SelectItem key={moduleItem.id} value={moduleItem.module_details.id.toString()}>
+                                                    [{moduleItem.module_details.module_code}] {moduleItem.module_details.module_name} ({moduleItem.role})
                                                 </SelectItem>
                                             ))
                                         )}

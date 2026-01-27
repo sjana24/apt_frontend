@@ -33,9 +33,10 @@ export function AdminLabs() {
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [selectedLab, setSelectedLab] = useState<Lab | null>(null);
-  
+
   const [formData, setFormData] = useState({
     name: "",
+    lab_code: "",
     capacity: 10,
   });
 
@@ -152,7 +153,7 @@ export function AdminLabs() {
   const handleAvailability = async (lab: Lab) => {
     // Toggle between 0 and 1
     const newStatus = lab.availability ? 0 : 1;
-    
+
     try {
       const response = await labService.updateLab(lab.id, {
         ...lab,
@@ -198,12 +199,12 @@ export function AdminLabs() {
   // =========================
   const openEdit = (lab: Lab) => {
     setSelectedLab(lab);
-    setFormData({ name: lab.name, capacity: lab.capacity });
+    setFormData({ name: lab.name, lab_code: lab.lab_code || "", capacity: lab.capacity });
     setIsEditOpen(true);
   };
 
   const resetForm = () => {
-    setFormData({ name: "", capacity: 30 });
+    setFormData({ name: "", lab_code: "", capacity: 30 });
     setSelectedLab(null);
   };
 
@@ -368,7 +369,7 @@ export function AdminLabs() {
         searchKey="name"
         searchPlaceholder="Search labs..."
         emptyMessage="No labs found."
-        // loading={loading}
+      // loading={loading}
       />
 
       {/* Create/Edit Dialog */}
@@ -390,6 +391,14 @@ export function AdminLabs() {
                 id="name"
                 value={formData.name}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+              />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="lab_code">Lab Code</Label>
+              <Input
+                id="lab_code"
+                value={formData.lab_code}
+                onChange={(e) => setFormData({ ...formData, lab_code: e.target.value })}
               />
             </div>
             <div className="grid gap-2">

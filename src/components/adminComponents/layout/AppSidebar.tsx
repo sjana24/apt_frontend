@@ -6,6 +6,7 @@ import {
   Users,
   UserCheck,
   LogOut,
+  UserSquareIcon,
 } from "lucide-react";
 import { NavLink, useLocation, useNavigate, useNavigation } from "react-router-dom";
 import {
@@ -30,6 +31,8 @@ const navigationItems = [
   { title: "Degrees", url: "/admin/degrees", icon: GraduationCap },
   { title: "Labs", url: "/admin/labs", icon: FlaskConical },
   { title: "Modules", url: "/admin/modules", icon: BookOpen },
+  { title: "Assignments", url: "/admin/assignments", icon: UserSquareIcon },
+  { title: "Timetable", url: "/admin/timetable", icon: LayoutDashboard },
 ];
 
 export function AdminAppSidebar() {

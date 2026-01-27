@@ -6,9 +6,10 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 
 // Pages
 import { Landing, SignIn, Register, Dashboard, PublicTimetable } from "./pages";
-import { AdminDashboard, AdminDegrees, AdminModules, AdminLabs, AdminStaffPage } from "./pages/Admin";
+import { AdminDashboard, AdminDegrees, AdminModules, AdminLabs, AdminStaffPage, AdminAssignments, AdminTimetable } from "./pages/Admin";
 import NotFound from "./pages/NotFound";
 import { StaffLabs, StaffDegrees, StaffModules } from "./pages/Staff";
+import Profile from "./pages/shared/Profile";
 // Layouts
 import DashboardLayout from "./layouts/DashboardLayout";
 import { AdminDashboardLayout } from "./components/adminComponents/layout/DashboardLayout";
@@ -29,12 +30,16 @@ const App = () => (
           <Route path="/register" element={<Register />} />
           <Route path="/timetable" element={<PublicTimetable />} />
 
-          {/* Dashboard Routes */}
+          {/* Dashboard Routes / Staff */}
           <Route path="/dashboard/" element={<DashboardLayout />}>
             <Route index element={<Dashboard />} />
             <Route path="staff/lab" element={<StaffLabs />} />
             <Route path="staff/degree" element={<StaffDegrees />} />
             <Route path="staff/course" element={<StaffModules />} />
+          </Route>
+
+          <Route element={<DashboardLayout />}>
+            <Route path="/profile" element={<Profile />} />
           </Route>
 
           <Route path="/admin" element={<AdminDashboardLayout />}>
@@ -43,6 +48,9 @@ const App = () => (
             <Route path="modules" element={<AdminModules />} />
             <Route path="labs" element={<AdminLabs />} />
             <Route path="staff" element={<AdminStaffPage />} />
+            <Route path="assignments" element={<AdminAssignments />} />
+            <Route path="timetable" element={<AdminTimetable />} />
+            <Route path="profile" element={<Profile />} />
           </Route>
 
           {/* Catch-all - must be last */}

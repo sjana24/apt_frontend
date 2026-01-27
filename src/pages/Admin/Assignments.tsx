@@ -25,20 +25,7 @@ import { Pencil, Trash2, UserPlus, BookOpen, Users } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import moduleService from "@/services/admin/courseModules.service";
 import staffService from "@/services/admin/staff.service";
-// Note: Assuming there is an assignment service or we might need to use a different service.
-// If 'StaffAssignment' is managed via a specific endpoint, we should use it.
-// Checking file list, there is no explicit assignment service.
-// Maybe it's part of module or staff service?
-// Step 250 (moduleService) has getAllModulesForSingleStaff, but not generic assignments.
-// I'll assume for now I should use a hypothetical assignment service or manage it locally if backend isn't ready.
-// Typically 'assignments' link staff to modules.
-// Let's assume for now we might need to fetch modules and staff, and maybe assignments are embedded or separate.
-// If no service exists, I'll create a placeholder or reuse existing.
-// Wait, `StaffAssignment` type suggests ID, module, staff, role.
-// I will simulate with local state for now if API is missing, BUT the prompt asked to remove mock data.
-// I'll try to find where assignments are.
-// If not found, I will create `assignment.service.ts` similar to others.
-// import assignmentService from "@/services/admin/assignment.service"; // I will create this
+import assignmentService from "@/services/admin/assignment.service";
 
 const roleOptions: StaffAssignment["role"][] = ["Lead Lecturer", "Assistant", "Lab Instructor"];
 
@@ -84,16 +71,29 @@ export function AdminAssignments() {
   };
 
   const moduleAssignments = selectedModule
-    ? assignments.filter((a) => a.module === selectedModule.id)
+    ? assignments.filter((a) => a.course_module === selectedModule.id)
     : [];
 
   const handleAssign = async () => {
     const staff = staffList.find((s) => s.id === formData.staff);
     if (!staff || !selectedModule) return;
 
+    const exists = assignments.some(
+      (a) => a.course_module === selectedModule.id && a.staff === formData.staff
+    );
+
+    if (exists) {
+      toast({
+        title: "Already Assigned",
+        description: "This staff member is already assigned to this module.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     try {
       const newAssignment = await assignmentService.createAssignment({
-        module: selectedModule.id,
+        course_module: selectedModule.id,
         staff: formData.staff,
         role: formData.role,
       });
@@ -182,7 +182,7 @@ export function AdminAssignments() {
       key: "assignments",
       header: "Assigned Staff",
       render: (item) => {
-        const count = assignments.filter((a) => a.module === item.id).length;
+        const count = assignments.filter((a) => a.course_module === item.id).length;
         return <Badge variant="secondary">{count} staff</Badge>;
       },
     },

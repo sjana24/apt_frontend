@@ -107,15 +107,15 @@ export  function AdminStaffPage() {
     }
   };
 
-  const handleDelete = async (member: Staff) => {
-    try {
-      await staffService.deleteStaff(member.id);
-      setStaff((prev) => prev.filter((s) => s.id !== member.id));
-      toast({ title: "Staff deleted", variant: "destructive" });
-    } catch (error: any) {
-      toast({ title: "Error", description: "Delete failed", variant: "destructive" });
-    }
-  };
+  // const handleDelete = async (member: Staff) => {
+  //   try {
+  //     await staffService.deleteStaff(member.id);
+  //     setStaff((prev) => prev.filter((s) => s.id !== member.id));
+  //     toast({ title: "Staff deleted", variant: "destructive" });
+  //   } catch (error: any) {
+  //     toast({ title: "Error", description: "Delete failed", variant: "destructive" });
+  //   }
+  // };
 
   // =========================
   // TOGGLE STATUS (ACTIVE/INACTIVE)
@@ -204,9 +204,9 @@ export  function AdminStaffPage() {
           </Button>
 
           {/* DELETE ACTION */}
-          <Button variant="ghost" size="icon" onClick={(e) => { e.stopPropagation(); handleDelete(item); }}>
+          {/* <Button variant="ghost" size="icon" onClick={(e) => { e.stopPropagation(); handleDelete(item); }}>
             <Trash2 className="h-4 w-4 text-destructive" />
-          </Button>
+          </Button> */}
         </div>
       ),
     },
