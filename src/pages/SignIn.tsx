@@ -1,28 +1,29 @@
-import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { Eye, EyeOff, User, AlertCircle } from 'lucide-react';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Checkbox } from '@/components/ui/checkbox';
-import { LoadingButton } from '@/components/ui/LoadingButton';
-import Navbar from '@/components/Navbar';
-import authService from '@/services/auth/auth.service';
-import { signInSchema, type SignInInput } from '@/schemas/auth.schema';
-import { toast } from '@/hooks/use-toast';
-import campusBuildingImg from '@/assets/campus-building.jpg';
+import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { Eye, EyeOff, User, AlertCircle } from "lucide-react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
+import { LoadingButton } from "@/components/ui/LoadingButton";
+import Navbar from "@/components/Navbar";
+import authService from "@/services/auth/auth.service";
+import { signInSchema, type SignInInput } from "@/schemas/auth.schema";
+import { toast } from "@/hooks/use-toast";
+import campusBuildingImg from "@/assets/campus-building.jpg";
 
 const roleRoutes = {
-  'admin': '/admin',
-  'staff': '/dashboard',
+  admin: "/admin",
+  staff: "/dashboard",
 };
 
 export function SignIn() {
   const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [rememberMe, setRememberMe] = useState(false);
 
   const {
     register,
@@ -30,30 +31,60 @@ export function SignIn() {
     formState: { errors },
   } = useForm<SignInInput>({
     resolver: zodResolver(signInSchema),
-    mode: 'onBlur',
+    mode: "onBlur",
   });
 
   const onSubmit = async (data: SignInInput) => {
     setLoading(true);
 
     try {
-      const response = await authService.login(data);
-      const role = response.user.user.role;
-      const targetRoute = roleRoutes[role as keyof typeof roleRoutes] || '/';
+      const response = await authService.login(data, rememberMe);
+      console.log("Full Login response:", JSON.stringify(response, null, 2));
+
+      const role = response?.user?.user?.role;
+      console.log("Extracted User role:", role);
+
+      if (!role) {
+        console.error("Role not found in response structure");
+        throw new Error("Role not found in response");
+      }
+
+      const targetRoute =
+        roleRoutes[role as keyof typeof roleRoutes] || "/dashboard";
+      console.log("Target route determined:", targetRoute);
 
       toast({
-        title: "Login Successful",
-        description: "Redirecting to your dashboard...",
+        title: "✓ Login Successful",
+        description: `Welcome back! Redirecting to dashboard...`,
       });
 
+      console.log("About to redirect in 500ms...");
+      // Force navigation with replace to prevent back button issues
       setTimeout(() => {
-        navigate(targetRoute);
+        console.log("Executing redirect NOW to:", targetRoute);
+        window.location.href = targetRoute;
       }, 500);
-
     } catch (error: any) {
-      const errorDetail = error.response?.data?.error || "Invalid email or password.";
+      console.error("Login error:", error);
+      const errorDetail =
+        error.response?.data?.error ||
+        error.message ||
+        "Invalid email or password.";
+
+      // Show specific error based on backend response
+      let title = "✗ Login Failed";
+      if (errorDetail.includes("Invalid credentials")) {
+        title = "✗ Invalid Credentials";
+      } else if (errorDetail.includes("email")) {
+        title = "✗ Invalid Email";
+      } else if (errorDetail.includes("password")) {
+        title = "✗ Incorrect Password";
+      } else if (errorDetail.includes("Role not found")) {
+        title = "✗ Authentication Error";
+      }
+
       toast({
-        title: "Login Failed",
+        title: title,
         description: errorDetail,
         variant: "destructive",
       });
@@ -81,7 +112,8 @@ export function SignIn() {
                 Reserve Your Academic Space
               </h2>
               <p className="text-white/90">
-                Manage classroom and laboratory bookings efficiently. Secure your spot in just a few clicks.
+                Manage classroom and laboratory bookings efficiently. Secure
+                your spot in just a few clicks.
               </p>
             </div>
           </div>
@@ -89,11 +121,18 @@ export function SignIn() {
           {/* Right Panel - Form */}
           <div className="flex flex-col justify-center rounded-2xl border border-border bg-card p-6 sm:p-8 shadow-card">
             <div className="mb-6 sm:mb-8">
-              <h1 className="mb-2 text-2xl font-bold text-foreground">Welcome back</h1>
-              <p className="text-sm text-muted-foreground">Please enter your details to sign in.</p>
+              <h1 className="mb-2 text-2xl font-bold text-foreground">
+                Welcome back
+              </h1>
+              <p className="text-sm text-muted-foreground">
+                Please enter your details to sign in.
+              </p>
             </div>
 
-            <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 sm:space-y-6">
+            <form
+              onSubmit={handleSubmit(onSubmit)}
+              className="space-y-4 sm:space-y-6"
+            >
               {/* Email Field */}
               <div>
                 <Label htmlFor="email">Email</Label>
@@ -103,7 +142,7 @@ export function SignIn() {
                     type="email"
                     placeholder="e.g. abc@gmail.com"
                     className="pr-10"
-                    {...register('email')}
+                    {...register("email")}
                     aria-invalid={errors.email ? "true" : "false"}
                   />
                   <User className="absolute right-3 top-1/2 h-5 w-5 -translate-y-1/2 text-muted-foreground" />
@@ -122,19 +161,25 @@ export function SignIn() {
                 <div className="relative mt-1.5">
                   <Input
                     id="password"
-                    type={showPassword ? 'text' : 'password'}
+                    type={showPassword ? "text" : "password"}
                     placeholder="••••••••"
                     className="pr-10"
-                    {...register('password')}
+                    {...register("password")}
                     aria-invalid={errors.password ? "true" : "false"}
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
                     className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                    aria-label={showPassword ? "Hide password" : "Show password"}
+                    aria-label={
+                      showPassword ? "Hide password" : "Show password"
+                    }
                   >
-                    {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                    {showPassword ? (
+                      <EyeOff className="h-5 w-5" />
+                    ) : (
+                      <Eye className="h-5 w-5" />
+                    )}
                   </button>
                 </div>
                 {errors.password && (
@@ -148,11 +193,27 @@ export function SignIn() {
               {/* Remember Me & Forgot Password */}
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                 <div className="flex items-center gap-2">
-                  <Checkbox id="remember" />
-                  <label htmlFor="remember" className="text-sm text-muted-foreground">
+                  <Checkbox
+                    id="remember"
+                    checked={rememberMe}
+                    onCheckedChange={(checked) =>
+                      setRememberMe(checked as boolean)
+                    }
+                  />
+                  <label
+                    htmlFor="remember"
+                    className="text-sm text-muted-foreground cursor-pointer"
+                    onClick={() => setRememberMe(!rememberMe)}
+                  >
                     Remember me
                   </label>
                 </div>
+                <Link
+                  to="/forgot-password"
+                  className="text-sm font-medium text-primary hover:underline"
+                >
+                  Forgot password?
+                </Link>
               </div>
 
               {/* Submit Button */}

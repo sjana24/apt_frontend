@@ -29,21 +29,15 @@ import staffService from "@/services/admin/staff.service";
 
 const roleLabels: Record<Staff["role"], string> = {
   admin: "Admin",
-  lecturer: "Lecturer",
-  lab_instructor: "Lab Instructor",
-  assistant: "Assistant",
   staff: "Staff"
 };
 
 const roleColors: Record<Staff["role"], "default" | "secondary" | "outline"> = {
   admin: "default",
-  lecturer: "secondary",
-  lab_instructor: "outline",
-  assistant: "outline",
   staff: "outline"
 };
 
-export  function AdminStaffPage() {
+export function AdminStaffPage() {
   const [staff, setStaff] = useState<Staff[]>([]);
   const [loading, setLoading] = useState(false);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
@@ -65,7 +59,16 @@ export  function AdminStaffPage() {
       setLoading(true);
       try {
         const data = await staffService.getAllStaff();
-        setStaff(data);
+        // Get current user ID from session storage
+        const currentUserId = sessionStorage.getItem('userId');
+
+        // Filter out the current user if they are an admin
+        // (Assuming you want to hide THE current user, regardless of role, though they must be admin to see this page)
+        const filteredData = currentUserId
+          ? data.filter((member: Staff) => member.id.toString() !== currentUserId)
+          : data;
+
+        setStaff(filteredData);
       } catch (error: any) {
         toast({
           title: "Error",
@@ -157,7 +160,7 @@ export  function AdminStaffPage() {
   };
 
   const resetForm = () => {
-    setFormData({ email: "", full_name: "", role: "lecturer", is_active: true });
+    setFormData({ email: "", full_name: "", role: "staff", is_active: true });
     setSelectedStaff(null);
   };
 
@@ -243,10 +246,8 @@ export  function AdminStaffPage() {
               <Select value={formData.role} onValueChange={(v) => setFormData({ ...formData, role: v as Staff["role"] })}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="lecturer">Lecturer</SelectItem>
-                  <SelectItem value="lab_instructor">Lab Instructor</SelectItem>
-                  <SelectItem value="assistant">Assistant</SelectItem>
                   <SelectItem value="admin">Admin</SelectItem>
+                  <SelectItem value="staff">Staff</SelectItem>
                 </SelectContent>
               </Select>
             </div>

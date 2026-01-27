@@ -1,24 +1,31 @@
-import { useState } from 'react';
-import { Link } from 'react-router-dom';
-import { Eye, EyeOff, User, Building } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import Navbar from '@/components/Navbar';
+import { useState } from "react";
+import { Link } from "react-router-dom";
+import { Eye, EyeOff, User, Building } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import Navbar from "@/components/Navbar";
+import { toast } from "@/hooks/use-toast";
 
-import studyRoomImg from '@/assets/study-room.jpg';
-import authService from '@/services/auth/auth.service';
+import studyRoomImg from "@/assets/study-room.jpg";
+import authService from "@/services/auth/auth.service";
 
 export function Register() {
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    role: '',
-    password: '',
-    confirmPassword: '',
+    name: "",
+    email: "",
+    role: "",
+    password: "",
+    confirmPassword: "",
     agreeToTerms: false,
   });
 
@@ -29,12 +36,41 @@ export function Register() {
       const result = await authService.signup(formData);
 
       console.log("Signup successful:", result);
-      alert("Registration successful! Please sign in.");
-      window.location.href = '/signin';
 
+      toast({
+        title: "✓ Registration Successful",
+        description: "Your account has been created. Redirecting to sign in...",
+      });
+
+      setTimeout(() => {
+        window.location.href = "/signin";
+      }, 1500);
     } catch (error: any) {
-      const errorMessage = error.response?.data?.detail || "Signup failed. Please try again.";
-      alert(errorMessage);
+      const errorDetail =
+        error.response?.data?.error || "Registration failed. Please try again.";
+
+      // Show specific error based on backend response
+      let title = "✗ Registration Failed";
+      if (errorDetail.includes("already exists")) {
+        title = "✗ Email Already Registered";
+      } else if (errorDetail.includes("Invalid email")) {
+        title = "✗ Invalid Email Format";
+      } else if (errorDetail.includes("disposable email")) {
+        title = "✗ Email Not Allowed";
+      } else if (errorDetail.includes("8 characters")) {
+        title = "✗ Password Too Short";
+      } else if (errorDetail.includes("letters and numbers")) {
+        title = "✗ Weak Password";
+      } else if (errorDetail.includes("required")) {
+        title = "✗ Missing Information";
+      }
+
+      toast({
+        title: title,
+        description: errorDetail,
+        variant: "destructive",
+      });
+
       console.error("Signup error:", error);
     }
   };
@@ -63,7 +99,8 @@ export function Register() {
                 Access Campus Resources
               </h2>
               <p className="mb-6 text-white/90">
-                Seamlessly book study rooms, lecture halls, and laboratories with your university credentials.
+                Seamlessly book study rooms, lecture halls, and laboratories
+                with your university credentials.
               </p>
               <div className="flex gap-8 border-t border-white/20 pt-6">
                 <div>
@@ -81,9 +118,12 @@ export function Register() {
           {/* Right Panel - Form */}
           <div className="flex flex-col justify-center rounded-2xl border border-border bg-card p-8 shadow-card">
             <div className="mb-6">
-              <h1 className="mb-2 text-2xl font-bold text-foreground">Staff Registration</h1>
+              <h1 className="mb-2 text-2xl font-bold text-foreground">
+                Staff Registration
+              </h1>
               <p className="text-muted-foreground">
-                Join the UWU Portal as a staff member to manage your modules and schedules.
+                Join the UWU Portal as a staff member to manage your modules and
+                schedules.
               </p>
             </div>
 
@@ -96,7 +136,9 @@ export function Register() {
                     type="text"
                     placeholder="e.g. Alex Johnson"
                     value={formData.name}
-                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                    onChange={(e) =>
+                      setFormData({ ...formData, name: e.target.value })
+                    }
                     className="pr-10"
                   />
                   <User className="absolute right-3 top-1/2 h-5 w-5 -translate-y-1/2 text-muted-foreground" />
@@ -110,7 +152,9 @@ export function Register() {
                   type="email"
                   placeholder="alex.j@university.edu"
                   value={formData.email}
-                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, email: e.target.value })
+                  }
                   className="mt-1.5"
                 />
                 <p className="mt-1 text-xs text-primary">
@@ -120,13 +164,18 @@ export function Register() {
 
               <div>
                 <Label htmlFor="role">Academic Role</Label>
-                <Select value={formData.role} onValueChange={(value) => setFormData({ ...formData, role: value })}>
+                <Select
+                  value={formData.role}
+                  onValueChange={(value) =>
+                    setFormData({ ...formData, role: value })
+                  }
+                >
                   <SelectTrigger className="mt-1.5 h-12 rounded-xl border-border bg-background">
                     <SelectValue placeholder="Select your role..." />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="staff">Staff Member</SelectItem>
-                    <SelectItem value="lecturer">Lecturer</SelectItem>
+                    <SelectItem value="admin">Administrator</SelectItem>
+                    <SelectItem value="staff">Staff</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -137,10 +186,12 @@ export function Register() {
                   <div className="relative mt-1.5">
                     <Input
                       id="password"
-                      type={showPassword ? 'text' : 'password'}
+                      type={showPassword ? "text" : "password"}
                       placeholder="••••••••"
                       value={formData.password}
-                      onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                      onChange={(e) =>
+                        setFormData({ ...formData, password: e.target.value })
+                      }
                       className="pr-10"
                     />
                     <button
@@ -148,7 +199,11 @@ export function Register() {
                       onClick={() => setShowPassword(!showPassword)}
                       className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
                     >
-                      {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                      {showPassword ? (
+                        <EyeOff className="h-5 w-5" />
+                      ) : (
+                        <Eye className="h-5 w-5" />
+                      )}
                     </button>
                   </div>
                 </div>
@@ -159,7 +214,12 @@ export function Register() {
                     type="password"
                     placeholder="••••••••"
                     value={formData.confirmPassword}
-                    onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        confirmPassword: e.target.value,
+                      })
+                    }
                     className="mt-1.5"
                   />
                 </div>
@@ -169,22 +229,45 @@ export function Register() {
                 <Checkbox
                   id="terms"
                   checked={formData.agreeToTerms}
-                  onCheckedChange={(checked) => setFormData({ ...formData, agreeToTerms: checked as boolean })}
+                  onCheckedChange={(checked) =>
+                    setFormData({
+                      ...formData,
+                      agreeToTerms: checked as boolean,
+                    })
+                  }
                   className="mt-1"
                 />
-                <label htmlFor="terms" className="text-sm text-muted-foreground">
-                  I agree to follow the university guidelines and regulations.
+                <label
+                  htmlFor="terms"
+                  className="text-sm text-muted-foreground cursor-pointer"
+                >
+                  I agree to follow the university guidelines and regulations.{" "}
+                  <span className="text-destructive">*</span>
                 </label>
               </div>
 
-              <Button type="submit" className="w-full" size="lg">
+              <Button
+                type="submit"
+                className="w-full"
+                size="lg"
+                disabled={!formData.agreeToTerms}
+              >
                 Create Account
               </Button>
+
+              {!formData.agreeToTerms && (
+                <p className="text-xs text-center text-muted-foreground -mt-2">
+                  Please agree to the terms to create an account
+                </p>
+              )}
             </form>
 
             <p className="mt-6 text-center text-sm text-muted-foreground">
-              Already have an account?{' '}
-              <Link to="/signin" className="font-medium text-primary hover:underline">
+              Already have an account?{" "}
+              <Link
+                to="/signin"
+                className="font-medium text-primary hover:underline"
+              >
                 Log in
               </Link>
             </p>
@@ -197,6 +280,6 @@ export function Register() {
       </div>
     </div>
   );
-};
+}
 
 export default Register;

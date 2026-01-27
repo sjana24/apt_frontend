@@ -27,7 +27,7 @@ import moduleService from "@/services/admin/courseModules.service";
 import staffService from "@/services/admin/staff.service";
 import assignmentService from "@/services/admin/assignment.service";
 
-const roleOptions: StaffAssignment["role"][] = ["Lead Lecturer", "Assistant", "Lab Instructor"];
+const roleOptions: StaffAssignment["role"][] = ["Lecturer", "Demonstrator"];
 
 export function AdminAssignments() {
   const [assignments, setAssignments] = useState<StaffAssignment[]>([]);
@@ -40,7 +40,7 @@ export function AdminAssignments() {
   const [loading, setLoading] = useState(true);
   const [formData, setFormData] = useState({
     staff: 0,
-    role: "Assistant" as StaffAssignment["role"],
+    role: "Lecturer" as StaffAssignment["role"],
   });
 
   useEffect(() => {
@@ -171,7 +171,7 @@ export function AdminAssignments() {
   };
 
   const resetForm = () => {
-    setFormData({ staff: 0, role: "Assistant" });
+    setFormData({ staff: 0, role: "Lecturer" });
     setSelectedAssignment(null);
   };
 
@@ -196,11 +196,9 @@ export function AdminAssignments() {
       render: (item) => (
         <Badge
           variant={
-            item.role === "Lead Lecturer"
+            item.role === "Lecturer"
               ? "default"
-              : item.role === "Lab Instructor"
-                ? "secondary"
-                : "outline"
+              : "secondary"
           }
         >
           {item.role}

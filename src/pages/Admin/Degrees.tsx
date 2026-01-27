@@ -461,8 +461,8 @@ export function AdminDegrees() {
                     <SelectValue placeholder="Select semester" />
                   </SelectTrigger>
                   <SelectContent className="bg-popover">
-                    <SelectItem value="I">Semester I</SelectItem>
-                    <SelectItem value="II">Semester II</SelectItem>
+                    <SelectItem value="1">Semester 1</SelectItem>
+                    <SelectItem value="2">Semester 2</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -543,8 +543,8 @@ export function AdminDegrees() {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent className="bg-popover">
-                    <SelectItem value="I">Semester I</SelectItem>
-                    <SelectItem value="II">Semester II</SelectItem>
+                    <SelectItem value="1">Semester 1</SelectItem>
+                    <SelectItem value="2">Semester 2</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
