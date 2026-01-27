@@ -1,14 +1,14 @@
 import { useState } from "react";
 import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { Calendar, GraduationCap, School, BookOpen, AlertCircle } from "lucide-react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { GraduationCap, School, BookOpen, Calendar } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { LoadingButton } from "@/components/ui/LoadingButton";
-import { timetableFilterSchema, type TimetableFilterInput } from "@/schemas/admin.schema";
+import { type TimetableFilterInput } from "@/schemas/admin.schema";
 import { Degree } from "@/types/indexAdmin";
 import { format, startOfWeek, addDays } from "date-fns";
+import { toast } from "@/hooks/use-toast";
 
 interface TimetableFiltersProps {
     degrees: Degree[];
@@ -17,35 +17,75 @@ interface TimetableFiltersProps {
 }
 
 export function TimetableFilters({ degrees, onSearch, loading }: TimetableFiltersProps) {
-    const [selectedDegree, setSelectedDegree] = useState<Degree | null>(null);
+    // Local states for cascading selection
+    const [selectedProgram, setSelectedProgram] = useState<string>("");
+    const [selectedLevel, setSelectedLevel] = useState<string>("");
+    const [selectedSemester, setSelectedSemester] = useState<string>("");
 
     const {
         register,
         handleSubmit,
         setValue,
-        watch,
         formState: { errors },
     } = useForm<TimetableFilterInput>({
-        // resolver: zodResolver(timetableFilterSchema), // We'll handle custom range logic
         defaultValues: {
             startDate: format(new Date(), 'yyyy-MM-dd'),
-            endDate: format(new Date(), 'yyyy-MM-dd'), // This will be calculated on submit
+            endDate: format(new Date(), 'yyyy-MM-dd'),
         },
     });
 
-    const handleDegreeChange = (degreeId: string) => {
-        const degree = degrees.find(d => d.id === parseInt(degreeId));
-        setSelectedDegree(degree || null);
-        setValue("degree", parseInt(degreeId));
+    // Get unique degree programs
+    const uniquePrograms = Array.from(new Set(degrees.map(d => d.degreeProgram)));
+
+    // Filtered levels based on selection
+    const availableLevels = selectedProgram
+        ? Array.from(new Set(degrees.filter(d => d.degreeProgram === selectedProgram).map(d => d.level))).sort()
+        : [];
+
+    // Filtered semesters based on program + level selection
+    const availableSemesters = (selectedProgram && selectedLevel)
+        ? Array.from(new Set(degrees.filter(d => d.degreeProgram === selectedProgram && d.level === selectedLevel).map(d => d.semester))).sort()
+        : [];
+
+    const handleProgramChange = (program: string) => {
+        setSelectedProgram(program);
+        setSelectedLevel("");
+        setSelectedSemester("");
+        setValue("degree", 0);
+    };
+
+    const handleLevelChange = (level: string) => {
+        setSelectedLevel(level);
+        setSelectedSemester("");
+        setValue("degree", 0);
+    };
+
+    const handleSemesterChange = (semester: string) => {
+        setSelectedSemester(semester);
+
+        const degree = degrees.find(d =>
+            d.degreeProgram === selectedProgram &&
+            d.level === selectedLevel &&
+            d.semester === semester
+        );
 
         if (degree) {
+            setValue("degree", degree.id);
             setValue("level", degree.level);
             setValue("semester", degree.semester);
         }
     };
 
     const onSubmit = (data: any) => {
-        // Calculate the Monday and Friday of the week for the selected date
+        if (!data.degree) {
+            toast({
+                title: "Incomplete Selection",
+                description: "Please select Program, Level, and Semester.",
+                variant: "destructive"
+            });
+            return;
+        }
+
         const selectedDate = new Date(data.startDate);
         const monday = startOfWeek(selectedDate, { weekStartsOn: 1 });
         const friday = addDays(monday, 4);
@@ -59,38 +99,26 @@ export function TimetableFilters({ degrees, onSearch, loading }: TimetableFilter
 
     return (
         <Card className="w-full max-w-4xl mx-auto border-0 shadow-none bg-transparent">
-            {/* <CardHeader className="text-center pb-8 p-0">
-                <CardTitle className="text-2xl sm:text-3xl">View Your Timetable</CardTitle>
-                <CardDescription className="text-base">
-                    Select your degree program to view the weekly schedule
-                </CardDescription>
-            </CardHeader> */}
             <CardContent className="p-0">
                 <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
-                    {/* Degree Selection */}
+                    {/* Program Selection */}
                     <div className="space-y-3">
-                        <Label htmlFor="degree" className="flex items-center gap-2 text-sm font-bold uppercase tracking-wider text-muted-foreground">
+                        <Label htmlFor="program" className="flex items-center gap-2 text-sm font-bold uppercase tracking-wider text-muted-foreground">
                             <GraduationCap className="h-4 w-4 text-primary" />
                             Degree Program
                         </Label>
-                        <Select onValueChange={handleDegreeChange}>
-                            <SelectTrigger className="mt-1.5 h-14 rounded-2xl border-white/20 bg-white/5 backdrop-blur-sm transition-all focus:ring-primary/20" id="degree">
+                        <Select onValueChange={handleProgramChange} value={selectedProgram}>
+                            <SelectTrigger className="mt-1.5 h-14 rounded-2xl border-white/20 bg-white/5 backdrop-blur-sm transition-all focus:ring-primary/20" id="program">
                                 <SelectValue placeholder="Select your degree program" />
                             </SelectTrigger>
                             <SelectContent className="rounded-2xl border-white/20 bg-white/10 backdrop-blur-xl">
-                                {degrees.map((degree) => (
-                                    <SelectItem key={degree.id} value={degree.id.toString()} className="hover:bg-primary/10 transition-colors">
-                                        {degree.degreeProgram}
+                                {uniquePrograms.map((program) => (
+                                    <SelectItem key={program} value={program}>
+                                        {program}
                                     </SelectItem>
                                 ))}
                             </SelectContent>
                         </Select>
-                        {errors.degree && (
-                            <p className="mt-1.5 text-sm text-destructive flex items-center gap-1">
-                                <AlertCircle className="h-3.5 w-3.5" />
-                                {errors.degree.message}
-                            </p>
-                        )}
                     </div>
 
                     {/* Level and Semester */}
@@ -101,15 +129,15 @@ export function TimetableFilters({ degrees, onSearch, loading }: TimetableFilter
                                 Academic Level
                             </Label>
                             <Select
-                                value={selectedDegree?.level || ""}
-                                onValueChange={(value) => setValue("level", value)}
-                                disabled={!selectedDegree}
+                                value={selectedLevel}
+                                onValueChange={handleLevelChange}
+                                disabled={!selectedProgram}
                             >
                                 <SelectTrigger className="mt-1.5 h-14 rounded-2xl border-white/20 bg-white/5 backdrop-blur-sm" id="level">
-                                    <SelectValue placeholder="Select level" />
+                                    <SelectValue placeholder={selectedProgram ? "Select level" : "Select program first"} />
                                 </SelectTrigger>
                                 <SelectContent className="rounded-2xl border-white/20 bg-white/10 backdrop-blur-xl">
-                                    {["100", "200", "300", "400"].map((level) => (
+                                    {availableLevels.map((level) => (
                                         <SelectItem key={level} value={level}>
                                             Level {level}
                                         </SelectItem>
@@ -124,15 +152,15 @@ export function TimetableFilters({ degrees, onSearch, loading }: TimetableFilter
                                 Semester
                             </Label>
                             <Select
-                                value={selectedDegree?.semester || ""}
-                                onValueChange={(value) => setValue("semester", value)}
-                                disabled={!selectedDegree}
+                                value={selectedSemester}
+                                onValueChange={handleSemesterChange}
+                                disabled={!selectedLevel}
                             >
                                 <SelectTrigger className="mt-1.5 h-14 rounded-2xl border-white/20 bg-white/5 backdrop-blur-sm" id="semester">
-                                    <SelectValue placeholder="Select semester" />
+                                    <SelectValue placeholder={selectedLevel ? "Select semester" : "Select level first"} />
                                 </SelectTrigger>
                                 <SelectContent className="rounded-2xl border-white/20 bg-white/10 backdrop-blur-xl">
-                                    {["1", "2"].map((sem) => (
+                                    {availableSemesters.map((sem) => (
                                         <SelectItem key={sem} value={sem}>
                                             Semester {sem}
                                         </SelectItem>
@@ -142,7 +170,7 @@ export function TimetableFilters({ degrees, onSearch, loading }: TimetableFilter
                         </div>
                     </div>
 
-                    {/* Date Selection - Single Week Picker */}
+                    {/* Week Selection */}
                     <div className="space-y-3">
                         <Label htmlFor="startDate" className="flex items-center gap-2 text-sm font-bold uppercase tracking-wider text-muted-foreground">
                             <Calendar className="h-4 w-4 text-primary" />
@@ -159,7 +187,6 @@ export function TimetableFilters({ degrees, onSearch, loading }: TimetableFilter
                                 <Calendar className="h-5 w-5 text-primary opacity-50" />
                             </div>
                         </div>
-                        <p className="text-[10px] text-muted-foreground pt-1">We'll automatically show the full week for your selection.</p>
                     </div>
 
                     {/* Submit Button */}

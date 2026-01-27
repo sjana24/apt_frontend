@@ -25,16 +25,15 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <Routes>
-          {/* Public Routes */}
-          <Route element={<GuestGuard />}>
+          {/* Public Routes - Accessible to EVERYONE */}
           <Route path="/" element={<Landing />} />
           <Route path="/timetable" element={<PublicTimetable />} />
-</Route>
-          {/* Auth Routes - Redirect to dashboard if already logged in */}
-          {/* <Route element={<GuestGuard />}> */}
+
+          {/* Auth Routes - Redirect to dashboard ONLY if already logged in */}
+          <Route element={<GuestGuard />}>
             <Route path="/signin" element={<SignIn />} />
             <Route path="/register" element={<Register />} />
-          {/* </Route> */}
+          </Route>
 
           {/* Staff Protected Routes */}
           <Route element={<AuthGuard allowedRoles={['staff']} />}>
