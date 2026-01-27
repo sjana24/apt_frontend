@@ -17,7 +17,7 @@ const staffService = {
     // Maps to backend: def get(self, request, pk)
     getStaffById: async (id) => {
         try {
-            const response = await axiosInstance.get(`staff/${id}`);
+            const response = await axiosInstance.get(`main/staff/${id}`);
             return response.data;
         } catch (error) {
             console.error(`Error fetching staff member ${id}:`, error.response?.data || error.message);
@@ -54,7 +54,7 @@ const staffService = {
     // Maps to backend: def delete(self, request, pk)
     deleteStaff: async (id) => {
         try {
-            const response = await axiosInstance.delete(`staff/${id}/`);
+            const response = await axiosInstance.delete(`main/staff/${id}/`);
             return response.data;
         } catch (error) {
             console.error(`Error deleting staff member ${id}:`, error.response?.data || error.message);
