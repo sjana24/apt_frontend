@@ -1,19 +1,23 @@
-import axios from 'axios';
+import axios from "axios";
+import { storage } from "../utils/storage";
+
+const API_BASE_URL =
+  import.meta.env.VITE_API_BASE_URL || "http://localhost:8000";
 
 // Create the instance
 const axiosInstance = axios.create({
-  baseURL: 'http://localhost:8000', // Your Django/Spring URL
+  baseURL: API_BASE_URL,
   timeout: 5000,
   headers: {
-    'Content-Type': 'application/json',
-    'Accept': 'application/json'
-  }
+    "Content-Type": "application/json",
+    Accept: "application/json",
+  },
 });
 
 // Optional: Add a request interceptor to attach tokens automatically
 axiosInstance.interceptors.request.use(
   (config) => {
-    const token = sessionStorage.getItem('access_token');
+    const token = storage.getItem("access_token");
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
@@ -21,7 +25,7 @@ axiosInstance.interceptors.request.use(
   },
   (error) => {
     return Promise.reject(error);
-  }
+  },
 );
 
 // The Response Interceptor (The "Magic")
@@ -31,19 +35,20 @@ axiosInstance.interceptors.response.use(
     const originalRequest = error.config;
 
     // Check if error is 401 and we haven't tried refreshing yet
-    if (error.response.status === 401 && !originalRequest._retry) {
+    if (error.response?.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true;
 
       try {
-        const refreshToken = sessionStorage.getItem('refresh_token');
+        const refreshToken = storage.getItem("refresh_token");
+        const rememberMe = localStorage.getItem("rememberMe") === "true";
 
         // Call Django to get a new access token
-        const res = await axios.post('http://localhost:8000/auth/refresh', {
+        const res = await axios.post(`${API_BASE_URL}/auth/refresh`, {
           refresh: refreshToken,
         });
 
         if (res.status === 200) {
-          sessionStorage.setItem('access_token', res.data.access);
+          storage.setItem("access_token", res.data.access, rememberMe);
           //   sessionStorage.setItem('refresh_token', res.data.refresh);
 
           // Update the failed request header and retry it
@@ -52,20 +57,13 @@ axiosInstance.interceptors.response.use(
         }
       } catch (refreshError) {
         // If refresh token is also expired, log the user out
-        const hasToken = sessionStorage.getItem('access_token');
-        sessionStorage.clear();
-
-        // ONLY redirect if we actually had a session that just died.
-        // This prevents public pages (Landing) from redirecting to signin on 401s.
-        if (hasToken) {
-          window.location.href = '/signin';
-        }
+        storage.clear();
+        window.location.href = "/signin";
         return Promise.reject(refreshError);
       }
     }
     return Promise.reject(error);
-  }
+  },
 );
-
 
 export default axiosInstance;

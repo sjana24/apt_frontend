@@ -1,5 +1,5 @@
 import { ChevronDown, User, Settings, LogOut } from "lucide-react";
-import authService from "@/services/auth/auth.service";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
@@ -10,36 +10,72 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { Link, useNavigate, useLocation } from "react-router-dom";
+import { storage } from "@/utils/storage";
+import authService from "@/services/auth/auth.service";
+import { toast } from "@/hooks/use-toast";
 
 export function AdminTopBar() {
   const navigate = useNavigate();
   const location = useLocation();
-  const currentUser = sessionStorage.getItem('fullname') || 'Admin User';
+  const currentUser = storage.getItem("fullname") || "Admin User";
+  const [showLogoutDialog, setShowLogoutDialog] = useState(false);
 
   const handleLogout = () => {
+    setShowLogoutDialog(true);
+  };
+
+  const confirmLogout = () => {
     authService.logout();
+    toast({
+      title: "Logged out",
+      description: "You have been successfully logged out.",
+    });
+    navigate("/signin");
   };
 
   return (
     <header className="h-20 border-b border-border bg-card px-6 flex items-center justify-between gap-4 sticky top-0 z-10">
       <div className="flex items-center gap-4">
         <SidebarTrigger className="text-muted-foreground hover:text-foreground p-2 bg-muted/50 rounded-lg" />
-        <h2 className="text-lg font-bold tracking-tight hidden sm:block">Administrative Portal</h2>
+        <h2 className="text-lg font-bold tracking-tight hidden sm:block">
+          Administrative Portal
+        </h2>
       </div>
 
       <div className="flex items-center gap-3">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="relative group flex items-center gap-3 h-auto py-1 px-2 hover:bg-muted/50 rounded-xl transition-all">
+            <Button
+              variant="ghost"
+              className="relative group flex items-center gap-3 h-auto py-1 px-2 hover:bg-muted/50 rounded-xl transition-all"
+            >
               <div className="flex flex-col items-end mr-2 hidden md:flex">
-                <span className="text-sm font-bold leading-none">{currentUser}</span>
-                <span className="text-[10px] text-primary font-bold uppercase tracking-wider mt-1">Super Admin</span>
+                <span className="text-sm font-bold leading-none">
+                  {currentUser}
+                </span>
+                <span className="text-[10px] text-primary font-bold uppercase tracking-wider mt-1">
+                  Super Admin
+                </span>
               </div>
               <Avatar className="h-10 w-10 border-2 border-primary/20 transition-transform group-hover:scale-105">
                 <AvatarFallback className="bg-primary text-primary-foreground font-bold">
-                  {currentUser?.split(' ').map(n => n[0]).join('').toUpperCase() || 'AD'}
+                  {currentUser
+                    ?.split(" ")
+                    .map((n) => n[0])
+                    .join("")
+                    .toUpperCase() || "AD"}
                 </AvatarFallback>
               </Avatar>
               <ChevronDown className="h-4 w-4 text-muted-foreground transition-transform group-data-[state=open]:rotate-180" />
@@ -51,7 +87,10 @@ export function AdminTopBar() {
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuItem asChild>
-              <Link to="/admin/profile" className="flex items-center gap-2 cursor-pointer w-full">
+              <Link
+                to="/admin/profile"
+                className="flex items-center gap-2 cursor-pointer w-full"
+              >
                 <User className="h-4 w-4" />
                 <span>My Profile</span>
               </Link>
@@ -67,6 +106,29 @@ export function AdminTopBar() {
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
+
+      <AlertDialog open={showLogoutDialog} onOpenChange={setShowLogoutDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              Are you sure you want to logout?
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              You will be redirected to the sign in page and will need to login
+              again to access your account.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmLogout}
+              className="bg-destructive hover:bg-destructive/90"
+            >
+              Logout
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </header>
   );
 }

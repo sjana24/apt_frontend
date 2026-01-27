@@ -6,7 +6,16 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 
 // Pages
 import { Landing, SignIn, Register, Dashboard, PublicTimetable } from "./pages";
-import { AdminDashboard, AdminDegrees, AdminModules, AdminLabs, AdminStaffPage, AdminAssignments, AdminTimetable } from "./pages/Admin";
+import { ForgotPassword } from "./pages/ForgotPasswordOTP";
+import {
+  AdminDashboard,
+  AdminDegrees,
+  AdminModules,
+  AdminLabs,
+  AdminStaffPage,
+  AdminAssignments,
+  AdminTimetable,
+} from "./pages/Admin";
 import NotFound from "./pages/NotFound";
 import { StaffLabs, StaffDegrees, StaffModules } from "./pages/Staff";
 import Profile from "./pages/shared/Profile";
@@ -14,7 +23,6 @@ import Profile from "./pages/shared/Profile";
 import DashboardLayout from "./layouts/DashboardLayout";
 import { AdminDashboardLayout } from "./components/adminComponents/layout/DashboardLayout";
 import { AuthGuard, GuestGuard } from "./middleware/ProtectedRoute";
-
 
 const queryClient = new QueryClient();
 
@@ -27,6 +35,9 @@ const App = () => (
         <Routes>
           {/* Public Routes - Accessible to EVERYONE */}
           <Route path="/" element={<Landing />} />
+          <Route path="/signin" element={<SignIn />} />
+          <Route path="/register" element={<Register />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/timetable" element={<PublicTimetable />} />
 
           {/* Auth Routes - Redirect to dashboard ONLY if already logged in */}
@@ -70,9 +81,7 @@ const App = () => (
 
           {/* Catch-all - must be last */}
           <Route path="*" element={<NotFound />} />
-
         </Routes>
-
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>

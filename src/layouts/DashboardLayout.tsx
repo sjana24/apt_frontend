@@ -1,11 +1,12 @@
-import { useEffect, useState } from 'react';
-import { Outlet, Link } from 'react-router-dom';
-import Sidebar from '@/components/Sidebar';
-import { ChevronDown, Clock } from 'lucide-react';
-import { format } from 'date-fns';
+import { useEffect, useState } from "react";
+import { Outlet, Link } from "react-router-dom";
+import Sidebar from "@/components/Sidebar";
+import { ChevronDown, Clock } from "lucide-react";
+import { format } from "date-fns";
+import { storage } from "@/utils/storage";
 
 const DashboardLayout = () => {
-  const currentUser = sessionStorage.getItem('fullname');
+  const currentUser = storage.getItem("fullname");
   const [currentTime, setCurrentTime] = useState(new Date());
 
   useEffect(() => {
@@ -23,7 +24,12 @@ const DashboardLayout = () => {
           <div className="flex flex-col">
             <h1 className="text-xl font-bold text-foreground">Dashboard</h1>
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <span>Welcome back, <span className="font-semibold text-primary">{currentUser}</span></span>
+              <span>
+                Welcome back,{" "}
+                <span className="font-semibold text-primary">
+                  {currentUser}
+                </span>
+              </span>
             </div>
           </div>
 
@@ -32,24 +38,33 @@ const DashboardLayout = () => {
             <div className="flex items-center gap-4 border-r border-border pr-6">
               <div className="flex flex-col items-end">
                 <span className="text-sm font-bold text-foreground">
-                  {format(currentTime, 'EEEE, MMMM do')}
+                  {format(currentTime, "EEEE, MMMM do")}
                 </span>
                 <div className="flex items-center gap-1.5 text-primary">
                   <Clock className="h-3.5 w-3.5" />
                   <span className="font-mono font-bold tracking-tight">
-                    {format(currentTime, 'HH:mm:ss')}
+                    {format(currentTime, "HH:mm:ss")}
                   </span>
                 </div>
               </div>
             </div>
 
             {/* Profile Dropdown */}
-            <Link to="/profile" className="flex items-center gap-3 hover:bg-muted/50 p-1.5 rounded-lg transition-colors cursor-pointer group">
+            <Link
+              to="/profile"
+              className="flex items-center gap-3 hover:bg-muted/50 p-1.5 rounded-lg transition-colors cursor-pointer group"
+            >
               <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 text-primary font-bold border border-primary/20 transition-transform group-hover:scale-105">
-                {currentUser?.split(' ').map(n => n[0]).join('').toUpperCase() || 'U'}
+                {currentUser
+                  ?.split(" ")
+                  .map((n) => n[0])
+                  .join("")
+                  .toUpperCase() || "U"}
               </div>
               <div className="flex flex-col">
-                <span className="text-sm font-semibold text-foreground leading-none">{currentUser}</span>
+                <span className="text-sm font-semibold text-foreground leading-none">
+                  {currentUser}
+                </span>
                 <span className="text-[10px] text-muted-foreground uppercase tracking-widest font-bold mt-1">
                   Active Session
                 </span>
