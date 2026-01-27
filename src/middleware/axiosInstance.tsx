@@ -17,9 +17,23 @@ const axiosInstance = axios.create({
 // Optional: Add a request interceptor to attach tokens automatically
 axiosInstance.interceptors.request.use(
   (config) => {
-    const token = storage.getItem("access_token");
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
+    // Don't attach token to login/signup/forgot-password/verify-otp/reset-password endpoints
+    const publicEndpoints = [
+      "/auth/token",
+      "/auth/signup",
+      "/auth/forgot-password",
+      "/auth/verify-otp",
+      "/auth/reset-password",
+    ];
+    const isPublicEndpoint = publicEndpoints.some((endpoint) =>
+      config.url?.includes(endpoint),
+    );
+
+    if (!isPublicEndpoint) {
+      const token = storage.getItem("access_token");
+      if (token) {
+        config.headers.Authorization = `Bearer ${token}`;
+      }
     }
     return config;
   },
