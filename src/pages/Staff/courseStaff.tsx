@@ -264,7 +264,7 @@ export function StaffModules() {
     try {
       // Update the assignment
       const updateData = {
-        role: "Lecturer", // Make this dynamic from form
+        role: "Lecturer",
       };
 
       // Assuming you have an update service
@@ -408,9 +408,8 @@ export function StaffModules() {
     if (!role) return "secondary";
     switch (role.toLowerCase()) {
       case 'lecturer': return 'default';
-      case 'coordinator': return 'destructive';
-      case 'assistant': return 'outline';
-      default: return 'secondary';
+      case 'demonstrator': return 'secondary';
+      default: return 'outline';
     }
   }, []);
 

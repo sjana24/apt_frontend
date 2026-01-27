@@ -22,6 +22,7 @@ const authService = {
             if (response.data.user.access) {
                 sessionStorage.setItem('userId', response.data.user.user.id);
                 sessionStorage.setItem('fullname', response.data.user.user.full_name);
+                sessionStorage.setItem('role', response.data.user.user.role);
                 sessionStorage.setItem('access_token', response.data.user.access);
                 sessionStorage.setItem('refresh_token', response.data.user.refresh);
             }
@@ -55,10 +56,8 @@ const authService = {
 
     // 4. Logout Function
     logout: () => {
-        sessionStorage.removeItem('access_token');
-        sessionStorage.removeItem('refresh_token');
         sessionStorage.clear();
-        // window.location.href = '/'; // Redirect to login page
+        window.location.href = '/';
     }
 };
 

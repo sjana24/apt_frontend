@@ -40,7 +40,7 @@ export interface Staff {
   id: number;
   email: string;
   full_name: string;
-  role: "admin" | "lecturer" | "lab_instructor" | "assistant" | "staff";
+  role: "admin" | "staff";
   is_active: boolean;
   created_at: string;
 }
@@ -52,7 +52,7 @@ export interface StaffAssignment {
   module_name?: string;
   staff: number;
   staff_name?: string;
-  role: "Lead Lecturer" | "Assistant" | "Lab Instructor";
+  role: "Lecturer" | "Demonstrator";
 }
 
 

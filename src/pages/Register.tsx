@@ -125,8 +125,8 @@ export function Register() {
                     <SelectValue placeholder="Select your role..." />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="staff">Staff Member</SelectItem>
-                    <SelectItem value="lecturer">Lecturer</SelectItem>
+                    <SelectItem value="admin">Administrator</SelectItem>
+                    <SelectItem value="staff">Staff</SelectItem>
                   </SelectContent>
                 </Select>
               </div>

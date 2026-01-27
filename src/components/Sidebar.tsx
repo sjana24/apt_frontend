@@ -26,19 +26,12 @@ const Sidebar = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const handleLogout = async () => {
-    const response = await authService.logout();
-
-    console.log("response", response);
-
-    // 3. Show a success message
+  const handleLogout = () => {
     toast({
-      title: "Logged out",
+      title: "Logging out...",
       description: "You have been successfully logged out.",
     });
-
-    // 4. Redirect to login or home
-    // navigate("/login");
+    authService.logout();
   };
 
   return (

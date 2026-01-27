@@ -1,4 +1,5 @@
 import { ChevronDown, User, Settings, LogOut } from "lucide-react";
+import authService from "@/services/auth/auth.service";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
@@ -18,9 +19,7 @@ export function AdminTopBar() {
   const currentUser = sessionStorage.getItem('fullname') || 'Admin User';
 
   const handleLogout = () => {
-    sessionStorage.clear();
-    // Use authService.logout() if available, or just clear and redirect
-    window.location.href = '/signin';
+    authService.logout();
   };
 
   return (
@@ -60,10 +59,7 @@ export function AdminTopBar() {
             <DropdownMenuSeparator />
             <DropdownMenuItem
               className="text-destructive flex items-center gap-2 cursor-pointer"
-              onClick={() => {
-                sessionStorage.clear();
-                navigate('/signin');
-              }}
+              onClick={handleLogout}
             >
               <LogOut className="h-4 w-4" />
               <span>Log out</span>
