@@ -27,6 +27,7 @@ const authService = {
           response.data.user.user.full_name,
           rememberMe,
         );
+        storage.setItem("role", response.data.user.user.role, rememberMe);
         storage.setItem("access_token", response.data.user.access, rememberMe);
         storage.setItem(
           "refresh_token",
