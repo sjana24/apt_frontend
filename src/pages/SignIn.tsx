@@ -10,6 +10,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { LoadingButton } from "@/components/ui/LoadingButton";
 import Navbar from "@/components/Navbar";
 import authService from "@/services/auth/auth.service";
+import { storage } from "@/utils/storage";
 import { signInSchema, type SignInInput } from "@/schemas/auth.schema";
 import { toast } from "@/hooks/use-toast";
 import campusBuildingImg from "@/assets/campus-building.jpg";
@@ -17,6 +18,7 @@ import campusBuildingImg from "@/assets/campus-building.jpg";
 const roleRoutes = {
   admin: "/admin",
   staff: "/dashboard",
+  lecturer: "/dashboard", // Lecturer uses same dashboard as staff
 };
 
 export function SignIn() {
@@ -41,7 +43,10 @@ export function SignIn() {
       const response = await authService.login(data, rememberMe);
       console.log("Full Login response:", JSON.stringify(response, null, 2));
 
-      const role = response?.user?.user?.role;
+      // Get role from storage after login (it's stored in auth service)
+      const storedRole = storage.getItem("role");
+      const role = storedRole || response?.user?.user?.role;
+      console.log("Stored role:", storedRole);
       console.log("Extracted User role:", role);
 
       if (!role) {
@@ -55,7 +60,7 @@ export function SignIn() {
 
       toast({
         title: "✓ Login Successful",
-        description: `Welcome back! Redirecting to dashboard...`,
+        description: `Welcome back! Redirecting to ${role} dashboard...`,
       });
 
       console.log("About to redirect in 500ms...");

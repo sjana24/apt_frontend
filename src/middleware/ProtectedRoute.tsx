@@ -1,4 +1,5 @@
-import { Navigate, Outlet } from 'react-router-dom';
+import { Navigate, Outlet } from "react-router-dom";
+import { storage } from "@/utils/storage";
 
 /**
  * AuthGuard - For routes that REQUIRE authentication.
@@ -6,21 +7,22 @@ import { Navigate, Outlet } from 'react-router-dom';
  * If allowedRoles is provided, checks if user has permission.
  */
 export const AuthGuard = ({ allowedRoles }: { allowedRoles?: string[] }) => {
-    const token = sessionStorage.getItem('access_token');
-    const role = sessionStorage.getItem('role');
+  const token = storage.getItem("access_token");
+  const role = storage.getItem("role");
 
-    if (!token) {
-        return <Navigate to="/signin" replace />;
-    }
+  if (!token) {
+    return <Navigate to="/signin" replace />;
+  }
 
-    if (allowedRoles && !allowedRoles.includes(role || '')) {
-        // Cross-role protection: If they go to wrong dashboard, send them to their own
-        if (role === 'admin') return <Navigate to="/admin" replace />;
-        if (role === 'staff') return <Navigate to="/dashboard" replace />;
-        return <Navigate to="/" replace />;
-    }
+  if (allowedRoles && !allowedRoles.includes(role || "")) {
+    // Cross-role protection: If they go to wrong dashboard, send them to their own
+    if (role === "admin") return <Navigate to="/admin" replace />;
+    if (role === "staff" || role === "lecturer")
+      return <Navigate to="/dashboard" replace />;
+    return <Navigate to="/" replace />;
+  }
 
-    return <Outlet />;
+  return <Outlet />;
 };
 
 /**
@@ -28,14 +30,15 @@ export const AuthGuard = ({ allowedRoles }: { allowedRoles?: string[] }) => {
  * If already logged in, redirects to their respective dashboard.
  */
 export const GuestGuard = () => {
-    const token = sessionStorage.getItem('access_token');
-    const role = sessionStorage.getItem('role');
+  const token = storage.getItem("access_token");
+  const role = storage.getItem("role");
 
-    if (token) {
-        if (role === 'admin') return <Navigate to="/admin" replace />;
-        if (role === 'staff') return <Navigate to="/dashboard" replace />;
-        return <Navigate to="/" replace />;
-    }
+  if (token) {
+    if (role === "admin") return <Navigate to="/admin" replace />;
+    if (role === "staff" || role === "lecturer")
+      return <Navigate to="/dashboard" replace />;
+    return <Navigate to="/" replace />;
+  }
 
-    return <Outlet />;
+  return <Outlet />;
 };

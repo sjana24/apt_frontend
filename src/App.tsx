@@ -47,7 +47,7 @@ const App = () => (
           </Route>
 
           {/* Staff Protected Routes */}
-          <Route element={<AuthGuard allowedRoles={['staff']} />}>
+          <Route element={<AuthGuard allowedRoles={["staff", "lecturer"]} />}>
             <Route path="/dashboard/" element={<DashboardLayout />}>
               <Route index element={<Dashboard />} />
               <Route path="staff/lab" element={<StaffLabs />} />
@@ -57,7 +57,7 @@ const App = () => (
           </Route>
 
           {/* Admin Protected Routes */}
-          <Route element={<AuthGuard allowedRoles={['admin']} />}>
+          <Route element={<AuthGuard allowedRoles={["admin"]} />}>
             <Route path="/admin" element={<AdminDashboardLayout />}>
               <Route index element={<AdminDashboard />} />
               <Route path="degrees" element={<AdminDegrees />} />
@@ -70,7 +70,11 @@ const App = () => (
           </Route>
 
           {/* Shared Protected Routes */}
-          <Route element={<AuthGuard allowedRoles={['staff', 'admin']} />}>
+          <Route
+            element={
+              <AuthGuard allowedRoles={["staff", "lecturer", "admin"]} />
+            }
+          >
             <Route element={<DashboardLayout />}>
               <Route path="/profile" element={<Profile />} />
             </Route>
