@@ -59,7 +59,16 @@ export function AdminStaffPage() {
       setLoading(true);
       try {
         const data = await staffService.getAllStaff();
-        setStaff(data);
+        // Get current user ID from session storage
+        const currentUserId = sessionStorage.getItem('userId');
+
+        // Filter out the current user if they are an admin
+        // (Assuming you want to hide THE current user, regardless of role, though they must be admin to see this page)
+        const filteredData = currentUserId
+          ? data.filter((member: Staff) => member.id.toString() !== currentUserId)
+          : data;
+
+        setStaff(filteredData);
       } catch (error: any) {
         toast({
           title: "Error",
