@@ -18,10 +18,10 @@ const authService = {
         try {
             const response = await axios.post('http://localhost:8000/auth/token', credentials);
             // Assuming your backend returns { access: "...", refresh: "..." }
-            console.log("xxxx",response.data.user.user.full_name);
+            console.log("xxxx", response.data.user.user.full_name);
             if (response.data.user.access) {
+                localStorage.setItem('userId', response.data.user.user.id);
                 localStorage.setItem('fullname', response.data.user.user.full_name);
-                // localStorage.setItem('refresh_token', response.data.user.refresh);
                 localStorage.setItem('access_token', response.data.user.access);
                 localStorage.setItem('refresh_token', response.data.user.refresh);
             }
@@ -39,7 +39,7 @@ const authService = {
             const response = await axiosInstance.post('main/token/refresh/', {
                 refresh: refreshToken
             });
-            
+
             if (response.data.access) {
                 localStorage.setItem('access_token', response.data.access);
             }

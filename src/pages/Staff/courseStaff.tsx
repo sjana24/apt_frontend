@@ -6,12 +6,13 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { DropdownMenu,DropdownMenuContent,DropdownMenuCheckboxItem,DropdownMenuTrigger,DropdownMenuSeparator} from "@/components/ui/dropdown-menu";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuCheckboxItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
 import { Pencil, Trash2, Filter, ChevronDown, ArrowUpDown, Calendar } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { format, parseISO, compareDesc } from "date-fns";
 import moduleService from "@/services/admin/courseModules.service";
-import { FilterOptions, StaffModuleAssignment } from "@/interfaces";
+import { FilterOptions } from "@/interfaces";
+import { StaffModuleAssignment } from "@/types/indexAdmin";
 
 // Sort options type
 type SortOption = "latest" | "oldest" | "name_asc" | "name_desc" | "code_asc" | "code_desc";
@@ -22,12 +23,12 @@ export function StaffModules() {
   const [filteredAssignments, setFilteredAssignments] = useState<StaffModuleAssignment[]>([]);
   const [degrees, setDegrees] = useState<Degree[]>([]);
   const [loading, setLoading] = useState(false);
-  
+
   // Dialog states
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [selectedAssignment, setSelectedAssignment] = useState<StaffModuleAssignment | null>(null);
-  
+
   // Filter and sort states
   const [filterOptions, setFilterOptions] = useState<FilterOptions>({
     roles: [],
@@ -55,19 +56,28 @@ export function StaffModules() {
     const fetchData = async () => {
       setLoading(true);
       try {
-        const response = await moduleService.getAllModulesForSingleStaff(2);
-        
+        const staffId = localStorage.getItem('userId');
+        if (!staffId) {
+          toast({
+            title: "Error",
+            description: "User ID not found. Please log in again.",
+            variant: "destructive",
+          });
+          return;
+        }
+        const response = await moduleService.getAllModulesForSingleStaff(parseInt(staffId));
+
         // Ensure we have an array and sort by latest first
         const data = Array.isArray(response) ? response : response?.data || [];
-        
+
         // Sort by assigned_at (newest first) initially
-        const sortedData = [...data].sort((a, b) => 
+        const sortedData = [...data].sort((a, b) =>
           compareDesc(parseISO(a.assigned_at), parseISO(b.assigned_at))
         );
-        
+
         setAssignments(sortedData);
         setFilteredAssignments(sortedData);
-        
+
         // Extract unique degrees from assignments for filter dropdown
         const uniqueDegrees = Array.from(
           new Map(
@@ -76,7 +86,7 @@ export function StaffModules() {
               .map(degree => [degree.id, degree])
           ).values()
         );
-        
+
         // Transform to Degree type if needed
         const degreeOptions: Degree[] = uniqueDegrees.map(deg => ({
           id: deg.id,
@@ -88,9 +98,9 @@ export function StaffModules() {
           duration: 4, // Default
           status: "active",
         }));
-        
+
         setDegrees(degreeOptions);
-        
+
       } catch (error: any) {
         console.error("Error fetching data:", error);
         toast({
@@ -187,15 +197,15 @@ export function StaffModules() {
     const uniqueRoles = Array.from(
       new Set(assignments.map(item => item.role).filter(Boolean) as string[])
     );
-    
+
     const uniqueLevels = Array.from(
       new Set(assignments.map(item => item.module_details.degree_details.level))
     );
-    
+
     const uniqueSemesters = Array.from(
       new Set(assignments.map(item => item.module_details.degree_details.semester))
     );
-    
+
     return {
       roles: uniqueRoles,
       levels: uniqueLevels,
@@ -208,24 +218,27 @@ export function StaffModules() {
   // =========================
   const handleCreate = useCallback(async () => {
     try {
+      const staffId = localStorage.getItem('userId');
+      if (!staffId) return;
+
       const moduleData = {
         module_name: formData.module_name,
         module_code: formData.module_code,
         credit: formData.credit,
         degree: formData.degree,
-        staff_id: 2
+        staff_id: parseInt(staffId)
       };
 
       const response = await moduleService.createModule(moduleData);
 
       if (response) {
         // Refresh the list to get updated data with proper sorting
-        const refreshedData = await moduleService.getAllModulesForSingleStaff(2);
+        const refreshedData = await moduleService.getAllModulesForSingleStaff(parseInt(staffId));
         const data = Array.isArray(refreshedData) ? refreshedData : refreshedData?.data || [];
-        const sortedData = [...data].sort((a, b) => 
+        const sortedData = [...data].sort((a, b) =>
           compareDesc(parseISO(a.assigned_at), parseISO(b.assigned_at))
         );
-        
+
         setAssignments(sortedData);
       }
 
@@ -256,14 +269,17 @@ export function StaffModules() {
 
       // Assuming you have an update service
       // const response = await moduleService.updateAssignment(selectedAssignment.id, updateData);
-      
+
       // For now, simulate update and refresh
-      const refreshedData = await moduleService.getAllModulesForSingleStaff(2);
+      const staffId = localStorage.getItem('userId');
+      if (!staffId) return;
+
+      const refreshedData = await moduleService.getAllModulesForSingleStaff(parseInt(staffId));
       const data = Array.isArray(refreshedData) ? refreshedData : refreshedData?.data || [];
-      const sortedData = [...data].sort((a, b) => 
+      const sortedData = [...data].sort((a, b) =>
         compareDesc(parseISO(a.assigned_at), parseISO(b.assigned_at))
       );
-      
+
       setAssignments(sortedData);
 
       toast({
@@ -289,11 +305,11 @@ export function StaffModules() {
 
     try {
       await moduleService.deleteModule(assignment.module_details.id);
-      
+
       // Update state by removing the deleted item
       setAssignments(prev => {
         const updated = prev.filter(a => a.id !== assignment.id);
-        return [...updated].sort((a, b) => 
+        return [...updated].sort((a, b) =>
           compareDesc(parseISO(a.assigned_at), parseISO(b.assigned_at))
         );
       });
@@ -318,7 +334,7 @@ export function StaffModules() {
   const handleRoleFilterChange = useCallback((role: string, checked: boolean) => {
     setFilterOptions(prev => ({
       ...prev,
-      roles: checked 
+      roles: checked
         ? [...prev.roles, role]
         : prev.roles.filter(r => r !== role)
     }));
@@ -327,7 +343,7 @@ export function StaffModules() {
   const handleDegreeFilterChange = useCallback((degreeId: number, checked: boolean) => {
     setFilterOptions(prev => ({
       ...prev,
-      degrees: checked 
+      degrees: checked
         ? [...prev.degrees, degreeId]
         : prev.degrees.filter(id => id !== degreeId)
     }));
@@ -336,7 +352,7 @@ export function StaffModules() {
   const handleLevelFilterChange = useCallback((level: string, checked: boolean) => {
     setFilterOptions(prev => ({
       ...prev,
-      levels: checked 
+      levels: checked
         ? [...prev.levels, level]
         : prev.levels.filter(l => l !== level)
     }));
@@ -345,7 +361,7 @@ export function StaffModules() {
   const handleSemesterFilterChange = useCallback((semester: string, checked: boolean) => {
     setFilterOptions(prev => ({
       ...prev,
-      semesters: checked 
+      semesters: checked
         ? [...prev.semesters, semester]
         : prev.semesters.filter(s => s !== semester)
     }));
@@ -390,7 +406,7 @@ export function StaffModules() {
 
   const getRoleBadgeVariant = useCallback((role: string | null) => {
     if (!role) return "secondary";
-    switch(role.toLowerCase()) {
+    switch (role.toLowerCase()) {
       case 'lecturer': return 'default';
       case 'coordinator': return 'destructive';
       case 'assistant': return 'outline';
@@ -402,8 +418,8 @@ export function StaffModules() {
   // TABLE COLUMNS
   // =========================
   const columns: Column<StaffModuleAssignment>[] = useMemo(() => [
-    { 
-      key: "module_details.module_code", 
+    {
+      key: "module_details.module_code",
       header: "Module Code",
       render: (item) => (
         <div className="font-mono font-semibold">
@@ -411,8 +427,8 @@ export function StaffModules() {
         </div>
       )
     },
-    { 
-      key: "module_details.module_name", 
+    {
+      key: "module_details.module_name",
       header: "Module Name",
       render: (item) => (
         <div>
@@ -467,7 +483,7 @@ export function StaffModules() {
         </div>
       ),
     },
-     ], [getRoleBadgeVariant, openEdit, handleDelete]);
+  ], [getRoleBadgeVariant, openEdit, handleDelete]);
 
   // =========================
   // FILTER COMPONENT
@@ -492,7 +508,7 @@ export function StaffModules() {
           Clear All
         </Button>
       </div>
-      
+
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         {/* Role Filter */}
         {roles.length > 0 && (
@@ -635,17 +651,17 @@ export function StaffModules() {
             className="w-full"
           />
         </div>
-        
+
         <div className="flex gap-2">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="outline" className="gap-2">
                 <ArrowUpDown className="h-4 w-4" />
-                Sort: {sortBy === "latest" ? "Latest First" : 
-                      sortBy === "oldest" ? "Oldest First" :
-                      sortBy === "name_asc" ? "A → Z" :
+                Sort: {sortBy === "latest" ? "Latest First" :
+                  sortBy === "oldest" ? "Oldest First" :
+                    sortBy === "name_asc" ? "A → Z" :
                       sortBy === "name_desc" ? "Z → A" :
-                      sortBy === "code_asc" ? "Code A → Z" : "Code Z → A"}
+                        sortBy === "code_asc" ? "Code A → Z" : "Code Z → A"}
                 <ChevronDown className="h-4 w-4" />
               </Button>
             </DropdownMenuTrigger>
@@ -698,14 +714,14 @@ export function StaffModules() {
           >
             <Filter className="h-4 w-4" />
             Filters
-            {Object.values(filterOptions).some(opt => 
-              Array.isArray(opt) ? opt.length > 0 : 
-              opt !== 1 && opt !== 6 // Check if credits are not default
+            {Object.values(filterOptions).some(opt =>
+              Array.isArray(opt) ? opt.length > 0 :
+                opt !== 1 && opt !== 6 // Check if credits are not default
             ) && (
-              <Badge variant="secondary" className="ml-1 h-5 w-5 p-0">
-                !
-              </Badge>
-            )}
+                <Badge variant="secondary" className="ml-1 h-5 w-5 p-0">
+                  !
+                </Badge>
+              )}
           </Button>
         </div>
       </div>
@@ -714,77 +730,77 @@ export function StaffModules() {
       {showFilters && <FilterPanel />}
 
       {/* Active Filters Badges */}
-      {(filterOptions.roles.length > 0 || 
-        filterOptions.degrees.length > 0 || 
-        filterOptions.levels.length > 0 || 
+      {(filterOptions.roles.length > 0 ||
+        filterOptions.degrees.length > 0 ||
+        filterOptions.levels.length > 0 ||
         filterOptions.semesters.length > 0 ||
-        filterOptions.minCredits > 1 || 
+        filterOptions.minCredits > 1 ||
         filterOptions.maxCredits < 6) && (
-        <div className="flex flex-wrap gap-2">
-          {filterOptions.roles.map(role => (
-            <Badge key={role} variant="secondary">
-              Role: {role}
-              <button 
-                onClick={() => handleRoleFilterChange(role, false)}
-                className="ml-1 hover:text-destructive"
-              >
-                ×
-              </button>
-            </Badge>
-          ))}
-          {filterOptions.degrees.map(degreeId => {
-            const degree = degrees.find(d => d.id === degreeId);
-            return degree && (
-              <Badge key={degreeId} variant="secondary">
-                Degree: {degree.degreeProgram}
-                <button 
-                  onClick={() => handleDegreeFilterChange(degreeId, false)}
+          <div className="flex flex-wrap gap-2">
+            {filterOptions.roles.map(role => (
+              <Badge key={role} variant="secondary">
+                Role: {role}
+                <button
+                  onClick={() => handleRoleFilterChange(role, false)}
                   className="ml-1 hover:text-destructive"
                 >
                   ×
                 </button>
               </Badge>
-            );
-          })}
-          {filterOptions.levels.map(level => (
-            <Badge key={level} variant="secondary">
-              Level: {level}
-              <button 
-                onClick={() => handleLevelFilterChange(level, false)}
-                className="ml-1 hover:text-destructive"
-              >
-                ×
-              </button>
-            </Badge>
-          ))}
-          {filterOptions.semesters.map(semester => (
-            <Badge key={semester} variant="secondary">
-              Semester: {semester}
-              <button 
-                onClick={() => handleSemesterFilterChange(semester, false)}
-                className="ml-1 hover:text-destructive"
-              >
-                ×
-              </button>
-            </Badge>
-          ))}
-          {(filterOptions.minCredits > 1 || filterOptions.maxCredits < 6) && (
-            <Badge variant="secondary">
-              Credits: {filterOptions.minCredits} - {filterOptions.maxCredits}
-              <button 
-                onClick={() => setFilterOptions(prev => ({
-                  ...prev,
-                  minCredits: 1,
-                  maxCredits: 6
-                }))}
-                className="ml-1 hover:text-destructive"
-              >
-                ×
-              </button>
-            </Badge>
-          )}
-        </div>
-      )}
+            ))}
+            {filterOptions.degrees.map(degreeId => {
+              const degree = degrees.find(d => d.id === degreeId);
+              return degree && (
+                <Badge key={degreeId} variant="secondary">
+                  Degree: {degree.degreeProgram}
+                  <button
+                    onClick={() => handleDegreeFilterChange(degreeId, false)}
+                    className="ml-1 hover:text-destructive"
+                  >
+                    ×
+                  </button>
+                </Badge>
+              );
+            })}
+            {filterOptions.levels.map(level => (
+              <Badge key={level} variant="secondary">
+                Level: {level}
+                <button
+                  onClick={() => handleLevelFilterChange(level, false)}
+                  className="ml-1 hover:text-destructive"
+                >
+                  ×
+                </button>
+              </Badge>
+            ))}
+            {filterOptions.semesters.map(semester => (
+              <Badge key={semester} variant="secondary">
+                Semester: {semester}
+                <button
+                  onClick={() => handleSemesterFilterChange(semester, false)}
+                  className="ml-1 hover:text-destructive"
+                >
+                  ×
+                </button>
+              </Badge>
+            ))}
+            {(filterOptions.minCredits > 1 || filterOptions.maxCredits < 6) && (
+              <Badge variant="secondary">
+                Credits: {filterOptions.minCredits} - {filterOptions.maxCredits}
+                <button
+                  onClick={() => setFilterOptions(prev => ({
+                    ...prev,
+                    minCredits: 1,
+                    maxCredits: 6
+                  }))}
+                  className="ml-1 hover:text-destructive"
+                >
+                  ×
+                </button>
+              </Badge>
+            )}
+          </div>
+        )}
 
       {/* Loading State */}
       {loading ? (

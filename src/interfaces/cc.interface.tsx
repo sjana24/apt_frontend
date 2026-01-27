@@ -15,7 +15,7 @@ export interface TimetableSlot {
     degree: number;
     module: number;
     lab: number;
-    status:string;
+    status: string;
     staff_list: StaffMember[];
 }
 export interface StaffMember {
@@ -40,7 +40,7 @@ export interface TimetableRow {
     friday: GridCell;
 }
 
-export interface TimeTabeSlotLabStaffProps {
+export interface TimeTableSlotLabStaffProps {
     open: boolean;
     onClose: () => void;
     lab: Lab | null;
@@ -67,34 +67,34 @@ export interface CreateTimetableSlotData {
 
 // Filter options type
 export interface FilterOptions {
-  roles: string[];
-  degrees: number[];
-  levels: string[];
-  semesters: string[];
-  minCredits: number;
-  maxCredits: number;
+    roles: string[];
+    degrees: number[];
+    levels: string[];
+    semesters: string[];
+    minCredits: number;
+    maxCredits: number;
 }
 
 export interface StaffModuleAssignment {
-  id: number;
-  role: string | null;
-  assigned_at: string;
-  updated_at?: string; // Add this if your API returns it
-  module_details: {
     id: number;
-    module_name: string;
-    module_code: string;
-    credit: number;
-    degree_details: {
-      id: number;
-      degreeProgram: string;
-      level: string;
-      semester: string;
-      academicYear: number;
+    role: string | null;
+    assigned_at: string;
+    updated_at?: string; // Add this if your API returns it
+    module_details: {
+        id: number;
+        module_name: string;
+        module_code: string;
+        credit: number;
+        degree_details: {
+            id: number;
+            degreeProgram: string;
+            level: string;
+            semester: string;
+            academicYear: number;
+        };
     };
-  };
-  staff_id: number;
-  staff_name: string;
+    staff_id: number;
+    staff_name: string;
 }
 
 export interface BackendTimetableResponse {
