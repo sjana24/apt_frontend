@@ -71,7 +71,7 @@ export function AdminAppSidebar() {
           {!isCollapsed && (
             <div className="flex flex-col">
               <span className="font-semibold text-sidebar-foreground text-sm">
-                UniAdmin
+                UWU Admin
               </span>
               <span className="text-xs text-sidebar-foreground/60">
                 Academic Portal

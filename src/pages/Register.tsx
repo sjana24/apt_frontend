@@ -11,7 +11,7 @@ import Navbar from '@/components/Navbar';
 import studyRoomImg from '@/assets/study-room.jpg';
 import authService from '@/services/auth/auth.service';
 
-export function Register () {
+export function Register() {
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
@@ -26,29 +26,29 @@ export function Register () {
     e.preventDefault();
 
     try {
-        const result = await authService.signup(formData);
+      const result = await authService.signup(formData);
 
-        console.log("Signup successful:", result);
-        alert("Registration successful! Please sign in.");
-        window.location.href = '/signin';
-        
+      console.log("Signup successful:", result);
+      alert("Registration successful! Please sign in.");
+      window.location.href = '/signin';
+
     } catch (error: any) {
-          const errorMessage = error.response?.data?.detail || "Signup failed. Please try again.";
-        alert(errorMessage);
-        console.error("Signup error:", error);
+      const errorMessage = error.response?.data?.detail || "Signup failed. Please try again.";
+      alert(errorMessage);
+      console.error("Signup error:", error);
     }
-};
+  };
 
   return (
     <div className="min-h-screen bg-background">
       <Navbar variant="auth" />
-      
+
       <div className="container mx-auto flex min-h-[calc(100vh-64px)] items-center justify-center px-4 py-12">
         <div className="grid w-full max-w-5xl gap-8 lg:grid-cols-2">
           {/* Left Panel - Image */}
           <div className="relative hidden overflow-hidden rounded-2xl lg:block">
-            <img 
-              src={studyRoomImg} 
+            <img
+              src={studyRoomImg}
               alt="University study space"
               className="h-full w-full object-cover"
             />
@@ -81,9 +81,9 @@ export function Register () {
           {/* Right Panel - Form */}
           <div className="flex flex-col justify-center rounded-2xl border border-border bg-card p-8 shadow-card">
             <div className="mb-6">
-              <h1 className="mb-2 text-2xl font-bold text-foreground">Create your Account</h1>
+              <h1 className="mb-2 text-2xl font-bold text-foreground">Staff Registration</h1>
               <p className="text-muted-foreground">
-                Join the university booking platform to start reserving spaces.
+                Join the UWU Portal as a staff member to manage your modules and schedules.
               </p>
             </div>
 
@@ -121,13 +121,12 @@ export function Register () {
               <div>
                 <Label htmlFor="role">Academic Role</Label>
                 <Select value={formData.role} onValueChange={(value) => setFormData({ ...formData, role: value })}>
-                  <SelectTrigger className="mt-1.5">
+                  <SelectTrigger className="mt-1.5 h-12 rounded-xl border-border bg-background">
                     <SelectValue placeholder="Select your role..." />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="student">Student</SelectItem>
+                    <SelectItem value="staff">Staff Member</SelectItem>
                     <SelectItem value="lecturer">Lecturer</SelectItem>
-                    <SelectItem value="admin">Administrator</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -167,21 +166,14 @@ export function Register () {
               </div>
 
               <div className="flex items-start gap-2">
-                <Checkbox 
-                  id="terms" 
+                <Checkbox
+                  id="terms"
                   checked={formData.agreeToTerms}
                   onCheckedChange={(checked) => setFormData({ ...formData, agreeToTerms: checked as boolean })}
                   className="mt-1"
                 />
                 <label htmlFor="terms" className="text-sm text-muted-foreground">
-                  I agree to the{' '}
-                  <Link to="/terms" className="font-medium text-primary hover:underline">
-                    Terms of Service
-                  </Link>{' '}
-                  and{' '}
-                  <Link to="/privacy" className="font-medium text-primary hover:underline">
-                    Privacy Policy
-                  </Link>.
+                  I agree to follow the university guidelines and regulations.
                 </label>
               </div>
 
@@ -198,11 +190,7 @@ export function Register () {
             </p>
 
             <div className="mt-6 flex items-center justify-center gap-4 text-xs text-muted-foreground">
-              <Link to="/help" className="hover:text-foreground">Help Center</Link>
-              <span>•</span>
-              <Link to="/privacy" className="hover:text-foreground">Privacy</Link>
-              <span>•</span>
-              <span>© 2023 UniBook</span>
+              <span>© 2026 Uva Wellassa University</span>
             </div>
           </div>
         </div>

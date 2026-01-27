@@ -10,11 +10,18 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { SidebarTrigger } from "@/components/ui/sidebar";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 
 export function AdminTopBar() {
   const navigate = useNavigate();
-  const currentUser = localStorage.getItem('fullname');
+  const location = useLocation();
+  const currentUser = sessionStorage.getItem('fullname') || 'Admin User';
+
+  const handleLogout = () => {
+    sessionStorage.clear();
+    // Use authService.logout() if available, or just clear and redirect
+    window.location.href = '/signin';
+  };
 
   return (
     <header className="h-20 border-b border-border bg-card px-6 flex items-center justify-between gap-4 sticky top-0 z-10">
@@ -50,15 +57,11 @@ export function AdminTopBar() {
                 <span>My Profile</span>
               </Link>
             </DropdownMenuItem>
-            <DropdownMenuItem className="flex items-center gap-2 cursor-pointer">
-              <Settings className="h-4 w-4" />
-              <span>Settings</span>
-            </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem
               className="text-destructive flex items-center gap-2 cursor-pointer"
               onClick={() => {
-                localStorage.clear();
+                sessionStorage.clear();
                 navigate('/signin');
               }}
             >
