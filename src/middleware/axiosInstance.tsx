@@ -52,8 +52,14 @@ axiosInstance.interceptors.response.use(
         }
       } catch (refreshError) {
         // If refresh token is also expired, log the user out
+        const hasToken = sessionStorage.getItem('access_token');
         sessionStorage.clear();
-        window.location.href = '/signin';
+
+        // ONLY redirect if we actually had a session that just died.
+        // This prevents public pages (Landing) from redirecting to signin on 401s.
+        if (hasToken) {
+          window.location.href = '/signin';
+        }
         return Promise.reject(refreshError);
       }
     }

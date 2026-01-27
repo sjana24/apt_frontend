@@ -13,6 +13,7 @@ import Profile from "./pages/shared/Profile";
 // Layouts
 import DashboardLayout from "./layouts/DashboardLayout";
 import { AdminDashboardLayout } from "./components/adminComponents/layout/DashboardLayout";
+import { AuthGuard, GuestGuard } from "./middleware/ProtectedRoute";
 
 
 const queryClient = new QueryClient();
@@ -25,32 +26,47 @@ const App = () => (
       <BrowserRouter>
         <Routes>
           {/* Public Routes */}
+          <Route element={<GuestGuard />}>
           <Route path="/" element={<Landing />} />
-          <Route path="/signin" element={<SignIn />} />
-          <Route path="/register" element={<Register />} />
           <Route path="/timetable" element={<PublicTimetable />} />
+</Route>
+          {/* Auth Routes - Redirect to dashboard if already logged in */}
+          {/* <Route element={<GuestGuard />}> */}
+            <Route path="/signin" element={<SignIn />} />
+            <Route path="/register" element={<Register />} />
+          {/* </Route> */}
 
-          {/* Dashboard Routes / Staff */}
-          <Route path="/dashboard/" element={<DashboardLayout />}>
-            <Route index element={<Dashboard />} />
-            <Route path="staff/lab" element={<StaffLabs />} />
-            <Route path="staff/degree" element={<StaffDegrees />} />
-            <Route path="staff/course" element={<StaffModules />} />
+          {/* Staff Protected Routes */}
+          <Route element={<AuthGuard allowedRoles={['staff']} />}>
+            <Route path="/dashboard/" element={<DashboardLayout />}>
+              <Route index element={<Dashboard />} />
+              <Route path="staff/lab" element={<StaffLabs />} />
+              <Route path="staff/degree" element={<StaffDegrees />} />
+              <Route path="staff/course" element={<StaffModules />} />
+            </Route>
           </Route>
 
-          <Route element={<DashboardLayout />}>
-            <Route path="/profile" element={<Profile />} />
+          {/* Admin Protected Routes */}
+          <Route element={<AuthGuard allowedRoles={['admin']} />}>
+            <Route path="/admin" element={<AdminDashboardLayout />}>
+              <Route index element={<AdminDashboard />} />
+              <Route path="degrees" element={<AdminDegrees />} />
+              <Route path="modules" element={<AdminModules />} />
+              <Route path="labs" element={<AdminLabs />} />
+              <Route path="staff" element={<AdminStaffPage />} />
+              <Route path="assignments" element={<AdminAssignments />} />
+              <Route path="timetable" element={<AdminTimetable />} />
+            </Route>
           </Route>
 
-          <Route path="/admin" element={<AdminDashboardLayout />}>
-            <Route index element={<AdminDashboard />} />
-            <Route path="degrees" element={<AdminDegrees />} />
-            <Route path="modules" element={<AdminModules />} />
-            <Route path="labs" element={<AdminLabs />} />
-            <Route path="staff" element={<AdminStaffPage />} />
-            <Route path="assignments" element={<AdminAssignments />} />
-            <Route path="timetable" element={<AdminTimetable />} />
-            <Route path="profile" element={<Profile />} />
+          {/* Shared Protected Routes */}
+          <Route element={<AuthGuard allowedRoles={['staff', 'admin']} />}>
+            <Route element={<DashboardLayout />}>
+              <Route path="/profile" element={<Profile />} />
+            </Route>
+            {/* Added admin profile here to ensure it works in both layouts if needed, 
+                though App already had it inside Admin route. 
+                Let's keep it specific to avoid layout confusion. */}
           </Route>
 
           {/* Catch-all - must be last */}
