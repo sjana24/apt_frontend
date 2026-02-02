@@ -6,8 +6,15 @@ import {
   Users,
   UserCheck,
   LogOut,
+  UserSquareIcon,
 } from "lucide-react";
-import { NavLink, useLocation, useNavigate, useNavigation } from "react-router-dom";
+import { useState } from "react";
+import {
+  NavLink,
+  useLocation,
+  useNavigate,
+  useNavigation,
+} from "react-router-dom";
 import {
   Sidebar,
   SidebarContent,
@@ -21,17 +28,27 @@ import {
   useSidebar,
   SidebarFooter,
 } from "@/components/ui/sidebar";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { toast } from "@/hooks/use-toast";
 import authService from "@/services/auth/auth.service";
 
 const navigationItems = [
   { title: "Dashboard", url: "/admin", icon: LayoutDashboard },
-  { title: "Staff", url: "admin/staff", icon: Users },
-  { title: "Degrees", url: "admin/degrees", icon: GraduationCap },
-  { title: "Labs", url: "admin/labs", icon: FlaskConical },
-  { title: "Modules", url: "admin/modules", icon: BookOpen },
-
-
+  { title: "Staff", url: "/admin/staff", icon: Users },
+  { title: "Degrees", url: "/admin/degrees", icon: GraduationCap },
+  { title: "Labs", url: "/admin/labs", icon: FlaskConical },
+  { title: "Modules", url: "/admin/modules", icon: BookOpen },
+  { title: "Assignments", url: "/admin/assignments", icon: UserSquareIcon },
+  { title: "Timetable", url: "/admin/timetable", icon: LayoutDashboard },
 ];
 
 export function AdminAppSidebar() {
@@ -39,45 +56,61 @@ export function AdminAppSidebar() {
   const location = useLocation();
   const { state } = useSidebar();
   const isCollapsed = state === "collapsed";
+  const [showLogoutDialog, setShowLogoutDialog] = useState(false);
+  const [showLogoLogoutDialog, setShowLogoLogoutDialog] = useState(false);
 
   const isActive = (path: string) => {
     if (path === "/abc") return location.pathname === "/";
     return location.pathname.startsWith(path);
   };
 
-  const handleLogout = async() => {
-     const response = await authService.logout();
+  const handleLogout = () => {
+    setShowLogoutDialog(true);
+  };
 
-    console.log("response", response);
+  const handleLogoClick = () => {
+    setShowLogoLogoutDialog(true);
+  };
 
-    // 3. Show a success message
+  const confirmLogout = () => {
+    authService.logout();
     toast({
       title: "Logged out",
       description: "You have been successfully logged out.",
     });
-
-    // 4. Redirect to login or home
     navigate("/signin");
+  };
+
+  const confirmLogoLogout = () => {
+    authService.logout();
+    toast({
+      title: "Logged out",
+      description: "You have been successfully logged out.",
+    });
+    navigate("/");
   };
 
   return (
     <Sidebar collapsible="icon" className="border-r border-sidebar-border">
       <SidebarHeader className="p-4 border-b border-sidebar-border">
-        <div className="flex items-center gap-3">
+        <button
+          onClick={handleLogoClick}
+          className="flex items-center gap-3 hover:opacity-80 transition-opacity cursor-pointer w-full text-left"
+        >
           <div className="h-8 w-8 rounded-lg bg-sidebar-primary flex items-center justify-center">
             <GraduationCap className="h-5 w-5 text-sidebar-primary-foreground" />
           </div>
           {!isCollapsed && (
             <div className="flex flex-col">
               <span className="font-semibold text-sidebar-foreground text-sm">
-                UniAdmin
+                UWU Admin
               </span>
               <span className="text-xs text-sidebar-foreground/60">
                 Academic Portal
               </span>
             </div>
           )}
-        </div>
+        </button>
       </SidebarHeader>
 
       <SidebarContent className="px-2 py-4">
@@ -97,9 +130,10 @@ export function AdminAppSidebar() {
                     <NavLink
                       to={item.url}
                       className={({ isActive: active }) =>
-                        `flex items-center gap-3 px-3 py-2 rounded-md transition-colors ${active
-                          ? "bg-sidebar-accent text-sidebar-accent-foreground"
-                          : "text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent/50"
+                        `flex items-center gap-3 px-3 py-2 rounded-md transition-colors ${
+                          active
+                            ? "bg-sidebar-accent text-sidebar-accent-foreground"
+                            : "text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent/50"
                         }`
                       }
                     >
@@ -127,6 +161,52 @@ export function AdminAppSidebar() {
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarFooter>
+
+      <AlertDialog open={showLogoutDialog} onOpenChange={setShowLogoutDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              Are you sure you want to logout?
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              You will be redirected to the sign in page and will need to login
+              again to access your account.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmLogout}
+              className="bg-destructive hover:bg-destructive/90"
+            >
+              Logout
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog
+        open={showLogoLogoutDialog}
+        onOpenChange={setShowLogoLogoutDialog}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Logout and go to Home?</AlertDialogTitle>
+            <AlertDialogDescription>
+              You will be logged out and redirected to the home page.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmLogoLogout}
+              className="bg-destructive hover:bg-destructive/90"
+            >
+              Logout & Go Home
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </Sidebar>
   );
 }

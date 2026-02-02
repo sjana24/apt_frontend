@@ -4,8 +4,8 @@ const timeTableService = {
     // 1. Get all degrees
     getByDegreeAndRange: async (degreeId, startDate, endDate) => {
         try {
-            const response = await axiosInstance.get('main/timetable/by-degree',{
-                 params: {
+            const response = await axiosInstance.get('main/timetable/by-degree', {
+                params: {
                     degree_id: degreeId,
                     start_date: startDate,
                     end_date: endDate
@@ -17,15 +17,15 @@ const timeTableService = {
             throw error; // Rethrow so the component can handle the error message
         }
     },
-     getByLabAndRange: async (degreeId, startDate, endDate) => {
+    getByLabAndRange: async (degreeId, startDate, endDate) => {
         try {
-           const  data= {
-                    lab_id: degreeId,
-                    start_date: startDate,
-                    end_date: endDate
-                }
-            const response = await axiosInstance.post('main/timetable-slots/by-lab',data);
-            
+            const data = {
+                lab_id: degreeId,
+                start_date: startDate,
+                end_date: endDate
+            }
+            const response = await axiosInstance.post('main/timetable-slots/by-lab', data);
+
             return response.data;
         } catch (error) {
             console.error("Error fetching degrees:", error.response?.data || error.message);
@@ -46,8 +46,8 @@ const timeTableService = {
 
     checkAvalibilityForSlot: async (date, timeRange) => {
         try {
-            const response = await axiosInstance.get('main/labs/check-availability',{
-                 params: {
+            const response = await axiosInstance.get('main/labs/check-availability', {
+                params: {
                     date: date,
                     time_range: timeRange,
                 }
@@ -91,8 +91,27 @@ const timeTableService = {
             console.error(`Error deleting degree ${id}:`, error.response?.data || error.message);
             throw error;
         }
+    },
+
+    getDashboardStats: async () => {
+        try {
+            const response = await axiosInstance.get('main/timetable/dashboard-stats');
+            return response.data;
+        } catch (error) {
+            console.error("Error fetching dashboard stats:", error.response?.data || error.message);
+            throw error;
+        }
+    },
+
+    getMySchedule: async () => {
+        try {
+            const response = await axiosInstance.get('main/timetable/my-schedule');
+            return response.data;
+        } catch (error) {
+            console.error("Error fetching my schedule:", error.response?.data || error.message);
+            throw error;
+        }
     }
-    
 };
 
 export default timeTableService;

@@ -1,7 +1,7 @@
-import { Bell, Search } from "lucide-react";
+import { ChevronDown, User, Settings, LogOut } from "lucide-react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -10,59 +10,125 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { SidebarTrigger } from "@/components/ui/sidebar";
+import { Link, useNavigate, useLocation } from "react-router-dom";
+import { storage } from "@/utils/storage";
+import authService from "@/services/auth/auth.service";
+import { toast } from "@/hooks/use-toast";
 
 export function AdminTopBar() {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const currentUser = storage.getItem("fullname") || "Admin User";
+  const [showLogoutDialog, setShowLogoutDialog] = useState(false);
+
+  const handleLogout = () => {
+    setShowLogoutDialog(true);
+  };
+
+  const confirmLogout = () => {
+    authService.logout();
+    toast({
+      title: "Logged out",
+      description: "You have been successfully logged out.",
+    });
+    navigate("/signin");
+  };
+
   return (
-    <header className="h-16 border-b border-border bg-card px-6 flex items-center justify-between gap-4 sticky top-0 z-10">
+    <header className="h-20 border-b border-border bg-card px-6 flex items-center justify-between gap-4 sticky top-0 z-10">
       <div className="flex items-center gap-4">
-        <SidebarTrigger className="text-muted-foreground hover:text-foreground" />
-        
-        <div className="relative hidden md:block">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Search..."
-            className="w-64 pl-9 bg-muted/50 border-0 focus-visible:ring-1"
-          />
-        </div>
+        <SidebarTrigger className="text-muted-foreground hover:text-foreground p-2 bg-muted/50 rounded-lg" />
+        <h2 className="text-lg font-bold tracking-tight hidden sm:block">
+          Administrative Portal
+        </h2>
       </div>
 
       <div className="flex items-center gap-3">
-        <Button variant="ghost" size="icon" className="relative">
-          <Bell className="h-4 w-4" />
-          <span className="absolute top-1 right-1 h-2 w-2 bg-primary rounded-full" />
-        </Button>
-
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="relative h-9 w-9 rounded-full">
-              <Avatar className="h-9 w-9">
-                <AvatarImage src="/placeholder.svg" alt="Admin" />
-                <AvatarFallback className="bg-primary text-primary-foreground text-sm">
-                  AD
+            <Button
+              variant="ghost"
+              className="relative group flex items-center gap-3 h-auto py-1 px-2 hover:bg-muted/50 rounded-xl transition-all"
+            >
+              <div className="flex flex-col items-end mr-2 hidden md:flex">
+                <span className="text-sm font-bold leading-none">
+                  {currentUser}
+                </span>
+                <span className="text-[10px] text-primary font-bold uppercase tracking-wider mt-1">
+                  Super Admin
+                </span>
+              </div>
+              <Avatar className="h-10 w-10 border-2 border-primary/20 transition-transform group-hover:scale-105">
+                <AvatarFallback className="bg-primary text-primary-foreground font-bold">
+                  {currentUser
+                    ?.split(" ")
+                    .map((n) => n[0])
+                    .join("")
+                    .toUpperCase() || "AD"}
                 </AvatarFallback>
               </Avatar>
+              <ChevronDown className="h-4 w-4 text-muted-foreground transition-transform group-data-[state=open]:rotate-180" />
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent className="w-56 bg-popover" align="end" forceMount>
-            <DropdownMenuLabel className="font-normal">
-              <div className="flex flex-col space-y-1">
-                <p className="text-sm font-medium">Admin User</p>
-                <p className="text-xs text-muted-foreground">
-                  admin@university.edu
-                </p>
-              </div>
+          <DropdownMenuContent className="w-56 mt-2" align="end" forceMount>
+            <DropdownMenuLabel className="font-bold text-xs uppercase text-muted-foreground tracking-widest px-4 py-3">
+              Admin Account
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
-            <DropdownMenuItem>Profile</DropdownMenuItem>
-            <DropdownMenuItem>Settings</DropdownMenuItem>
+            <DropdownMenuItem asChild>
+              <Link
+                to="/admin/profile"
+                className="flex items-center gap-2 cursor-pointer w-full"
+              >
+                <User className="h-4 w-4" />
+                <span>My Profile</span>
+              </Link>
+            </DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem className="text-destructive">
-              Log out
+            <DropdownMenuItem
+              className="text-destructive flex items-center gap-2 cursor-pointer"
+              onClick={handleLogout}
+            >
+              <LogOut className="h-4 w-4" />
+              <span>Log out</span>
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
+
+      <AlertDialog open={showLogoutDialog} onOpenChange={setShowLogoutDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              Are you sure you want to logout?
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              You will be redirected to the sign in page and will need to login
+              again to access your account.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmLogout}
+              className="bg-destructive hover:bg-destructive/90"
+            >
+              Logout
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </header>
   );
 }

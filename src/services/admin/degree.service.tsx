@@ -37,7 +37,7 @@ const degreeService = {
     // 4. Update an existing degree
     updateDegree: async (id, data) => {
         try {
-            console.log("xxxxxxxxxxxxxxxxxx",data);
+            console.log("xxxxxxxxxxxxxxxxxx", data);
             const response = await axiosInstance.put(`main/degree/${id}`, data);
             return response.data;
         } catch (error) {
@@ -53,6 +53,16 @@ const degreeService = {
             return response.data;
         } catch (error) {
             console.error(`Error deleting degree ${id}:`, error.response?.data || error.message);
+            throw error;
+        }
+    },
+
+    getDegreesByStaff: async (staffId) => {
+        try {
+            const response = await axiosInstance.get(`main/degree/staff/${staffId}/`);
+            return response.data;
+        } catch (error) {
+            console.error(`Error fetching degrees for staff ${staffId}:`, error.response?.data || error.message);
             throw error;
         }
     }

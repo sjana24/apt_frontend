@@ -1,63 +1,84 @@
-import { Outlet } from 'react-router-dom';
-import Sidebar from '@/components/Sidebar';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Search, Bell, Plus, ChevronDown } from 'lucide-react';
-// import { currentUser } from '@/data/mockData';
-import { Link } from 'react-router-dom';
-
-
+import { useEffect, useState } from "react";
+import { Outlet, Link } from "react-router-dom";
+import Sidebar from "@/components/Sidebar";
+import { ChevronDown, Clock } from "lucide-react";
+import { format } from "date-fns";
+import { storage } from "@/utils/storage";
 
 const DashboardLayout = () => {
+  const currentUser = storage.getItem("fullname");
+  const [currentTime, setCurrentTime] = useState(new Date());
 
-const currentUser = localStorage.getItem('fullname');
+  useEffect(() => {
+    const timer = setInterval(() => setCurrentTime(new Date()), 1000);
+    return () => clearInterval(timer);
+  }, []);
 
   return (
     <div className="flex min-h-screen bg-background">
       <Sidebar />
-      
+
       <div className="flex flex-1 flex-col">
         {/* Top Header */}
-        <header className="flex h-16 items-center justify-between border-b border-border bg-card px-6">
-          <div>
-            <h1 className="text-xl font-semibold text-foreground">Dashboard</h1>
-            <p className="text-sm text-muted-foreground">Welcome back, {currentUser}</p>
+        <header className="flex h-20 items-center justify-between border-b border-border bg-card px-6">
+          <div className="flex flex-col">
+            <h1 className="text-xl font-bold text-foreground">Dashboard</h1>
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <span>
+                Welcome back,{" "}
+                <span className="font-semibold text-primary">
+                  {currentUser}
+                </span>
+              </span>
+            </div>
           </div>
 
-          <div className="flex items-center gap-4">
-            <div className="relative w-80">
-              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-              <Input 
-                placeholder="Search rooms, labs, or bookings..."
-                className="pl-10"
-              />
-            </div>
-
-            <Button variant="ghost" size="icon" className="relative">
-              <Bell className="h-5 w-5" />
-              <span className="absolute right-2 top-2 h-2 w-2 rounded-full bg-destructive" />
-            </Button>
-
-            <Button asChild>
-              <Link to="/spaces">
-                <Plus className="mr-2 h-4 w-4" />
-                Book Room
-              </Link>
-            </Button>
-
-            <div className="flex items-center gap-2">
-              <div className="flex h-9 w-9 items-center justify-center rounded-full bg-primary text-sm font-medium text-primary-foreground">
-                DT
+          <div className="flex items-center gap-6">
+            {/* Live Clock Section */}
+            <div className="flex items-center gap-4 border-r border-border pr-6">
+              <div className="flex flex-col items-end">
+                <span className="text-sm font-bold text-foreground">
+                  {format(currentTime, "EEEE, MMMM do")}
+                </span>
+                <div className="flex items-center gap-1.5 text-primary">
+                  <Clock className="h-3.5 w-3.5" />
+                  <span className="font-mono font-bold tracking-tight">
+                    {format(currentTime, "HH:mm:ss")}
+                  </span>
+                </div>
               </div>
-              <span className="text-sm font-medium text-foreground">{currentUser}</span>
-              <ChevronDown className="h-4 w-4 text-muted-foreground" />
             </div>
+
+            {/* Profile Dropdown */}
+            <Link
+              to="/profile"
+              className="flex items-center gap-3 hover:bg-muted/50 p-1.5 rounded-lg transition-colors cursor-pointer group"
+            >
+              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 text-primary font-bold border border-primary/20 transition-transform group-hover:scale-105">
+                {currentUser
+                  ?.split(" ")
+                  .map((n) => n[0])
+                  .join("")
+                  .toUpperCase() || "U"}
+              </div>
+              <div className="flex flex-col">
+                <span className="text-sm font-semibold text-foreground leading-none">
+                  {currentUser}
+                </span>
+                <span className="text-[10px] text-muted-foreground uppercase tracking-widest font-bold mt-1">
+                  Active Session
+                </span>
+              </div>
+              <ChevronDown className="h-4 w-4 text-muted-foreground ml-1" />
+            </Link>
           </div>
         </header>
 
         {/* Main Content */}
-        <main className="flex-1 overflow-auto p-6">
-          <Outlet />
+        <main className="flex-1 overflow-auto bg-slate-50/50">
+          <div className="max-w-[1600px] mx-auto p-8 lg:p-10 space-y-8 animate-in fade-in duration-700">
+            <Outlet />
+          </div>
         </main>
       </div>
     </div>

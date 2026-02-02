@@ -9,8 +9,8 @@ export function AdminDashboardLayout() {
       <AdminAppSidebar />
       <SidebarInset>
         <AdminTopBar />
-        <main className="flex-1 p-6 overflow-auto">
-          <div className="animate-fade-in">
+        <main className="flex-1 overflow-auto bg-slate-50/30">
+          <div className="max-w-[1600px] mx-auto p-8 lg:p-10 animate-in fade-in duration-700">
             <Outlet />
           </div>
         </main>

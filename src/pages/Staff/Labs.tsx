@@ -24,7 +24,7 @@ import {
 import { toast } from "@/hooks/use-toast";
 import { format, parseISO, compareDesc } from "date-fns";
 import labService from "@/services/admin/lab.service";
-import { TimeTabeSlotLabStaff } from "@/components/TimeTabeSlotLabStaff";
+import { TimeTableSlotLabStaff } from "@/components/TimeTableSlotLabStaff";
 import { getWeekRange } from "@/middleware/getWeek";
 
 // Sort options type
@@ -96,25 +96,25 @@ export function StaffLabs() {
   }, []);
 
   const handleDateConfirm = (date: string) => {
-          console.log("Selected Date:", date);
-  
-          setSelectedDate(date);
-          // Convert string → Date
-      const selected = new Date(date);
-  
-      // Get Monday & Friday
-      const weekRange = getWeekRange(selected);
-  
-      if (weekRange) {
-          console.log("Week Start (Monday):", weekRange.monday);
-          console.log("Week End (Friday):", weekRange.friday);
-          // console.log("Week End (Friday):",pendingDegree.id);
-      }
-  
-          // if (pendingDegree) {
-          //     // openExplorer(pendingDegree); // existing function
-          // }
-      };
+    console.log("Selected Date:", date);
+
+    setSelectedDate(date);
+    // Convert string → Date
+    const selected = new Date(date);
+
+    // Get Monday & Friday
+    const weekRange = getWeekRange(selected);
+
+    if (weekRange) {
+      console.log("Week Start (Monday):", weekRange.monday);
+      console.log("Week End (Friday):", weekRange.friday);
+      // console.log("Week End (Friday):",pendingDegree.id);
+    }
+
+    // if (pendingDegree) {
+    //     // openExplorer(pendingDegree); // existing function
+    // }
+  };
 
   // =========================
   // FILTER AND SORT - Memoized
@@ -172,8 +172,8 @@ export function StaffLabs() {
     return capacities.sort((a, b) => a - b);
   }, [labs]);
 
-   
- 
+
+
   // =========================
   // FILTER HANDLERS
   // =========================
@@ -202,13 +202,13 @@ export function StaffLabs() {
   }, []);
 
   const handleRowClick = (lab: Lab) => {
-          console.log("Row Clicked Data:", lab); // Print to console
-          // openExplorer(degree); // Open the explorer popup
-          setSelectedLab(lab);
-          setIsDateDialogOpen(true);
-  
-      };
-  
+    console.log("Row Clicked Data:", lab); // Print to console
+    // openExplorer(degree); // Open the explorer popup
+    setSelectedLab(lab);
+    setIsDateDialogOpen(true);
+
+  };
+
 
   // =========================
   // TABLE COLUMNS
@@ -254,7 +254,7 @@ export function StaffLabs() {
         </div>
       ),
     },
-   
+
   ], [openEdit]);
 
   // =========================
@@ -350,7 +350,7 @@ export function StaffLabs() {
   // =========================
   return (
     <div className="space-y-6">
-      
+
       {/* Search and Filter Bar */}
       <div className="flex flex-col sm:flex-row gap-4">
         <div className="flex-1 relative">
@@ -534,12 +534,12 @@ export function StaffLabs() {
           )}
         </>
       )}
-      <TimeTabeSlotLabStaff
-                  lab={selectedLab}
-                      open={isDateDialogOpen}
-                      onClose={() => setIsDateDialogOpen(false)}
-                      onConfirm={handleDateConfirm}
-                  />
+      <TimeTableSlotLabStaff
+        lab={selectedLab}
+        open={isDateDialogOpen}
+        onClose={() => setIsDateDialogOpen(false)}
+        onConfirm={handleDateConfirm}
+      />
     </div>
   );
 }

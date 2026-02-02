@@ -1,61 +1,98 @@
-import { useState } from 'react';
-import { Link, useNavigation } from 'react-router-dom';
-import { Eye, EyeOff, User } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Checkbox } from '@/components/ui/checkbox';
-import Navbar from '@/components/Navbar';
-import authService from '@/services/auth/auth.service';
-import { useNavigate } from 'react-router-dom';
+import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { Eye, EyeOff, User, AlertCircle } from "lucide-react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
+import { LoadingButton } from "@/components/ui/LoadingButton";
+import Navbar from "@/components/Navbar";
+import authService from "@/services/auth/auth.service";
+import { storage } from "@/utils/storage";
+import { signInSchema, type SignInInput } from "@/schemas/auth.schema";
+import { toast } from "@/hooks/use-toast";
+import campusBuildingImg from "@/assets/campus-building.jpg";
 
+const roleRoutes = {
+  admin: "/admin",
+  staff: "/dashboard",
+  lecturer: "/dashboard", // Lecturer uses same dashboard as staff
+};
 
-import campusBuildingImg from '@/assets/campus-building.jpg';
-
-type UserRole = 'student' | 'lecturer' | 'admin';
-
-export function SignIn () {
+export function SignIn() {
   const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
-  const [selectedRole, setSelectedRole] = useState<UserRole>('student');
   const [loading, setLoading] = useState(false);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [successMessage, setSuccessMessage] = useState<string | null>(null);
-  const [formData, setFormData] = useState({
-    email: '',
-    password: '',
-    rememberMe: false,
+  const [rememberMe, setRememberMe] = useState(false);
+
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<SignInInput>({
+    resolver: zodResolver(signInSchema),
+    mode: "onBlur",
   });
 
-  const roleRoutes = {
-    'admin': '/admin',
-    'staff': '/dashboard',
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const onSubmit = async (data: SignInInput) => {
     setLoading(true);
-    setErrorMessage(null); // Reset errors on new attempt
 
     try {
-      const response = await authService.login(formData);
+      const response = await authService.login(data, rememberMe);
+      console.log("Full Login response:", JSON.stringify(response, null, 2));
 
-      // 1. Success Feedback
-      setSuccessMessage("Login Successful! Redirecting...");
+      // Get role from storage after login (it's stored in auth service)
+      const storedRole = storage.getItem("role");
+      const role = storedRole || response?.user?.user?.role;
+      console.log("Stored role:", storedRole);
+      console.log("Extracted User role:", role);
 
-      // 2. Extract Data
-      const role = response.user.user.role;
-      const targetRoute = roleRoutes[role] || '/login';
+      if (!role) {
+        console.error("Role not found in response structure");
+        throw new Error("Role not found in response");
+      }
 
-      // 3. Delay navigation slightly so user can see the success message
+      const targetRoute =
+        roleRoutes[role as keyof typeof roleRoutes] || "/dashboard";
+      console.log("Target route determined:", targetRoute);
+
+      toast({
+        title: "✓ Login Successful",
+        description: `Welcome back! Redirecting to ${role} dashboard...`,
+      });
+
+      console.log("About to redirect in 500ms...");
+      // Force navigation with replace to prevent back button issues
       setTimeout(() => {
-        navigate(targetRoute);
-      }, 1500);
-
+        console.log("Executing redirect NOW to:", targetRoute);
+        window.location.href = targetRoute;
+      }, 500);
     } catch (error: any) {
-      // 4. Handle specific error messages from Django
-      const errorDetail = error.response?.data?.error || "Invalid email or password.";
-      setErrorMessage(errorDetail);
+      console.error("Login error:", error);
+      const errorDetail =
+        error.response?.data?.error ||
+        error.message ||
+        "Invalid email or password.";
+
+      // Show specific error based on backend response
+      let title = "✗ Login Failed";
+      if (errorDetail.includes("Invalid credentials")) {
+        title = "✗ Invalid Credentials";
+      } else if (errorDetail.includes("email")) {
+        title = "✗ Invalid Email";
+      } else if (errorDetail.includes("password")) {
+        title = "✗ Incorrect Password";
+      } else if (errorDetail.includes("Role not found")) {
+        title = "✗ Authentication Error";
+      }
+
+      toast({
+        title: title,
+        description: errorDetail,
+        variant: "destructive",
+      });
     } finally {
       setLoading(false);
     }
@@ -65,7 +102,7 @@ export function SignIn () {
     <div className="min-h-screen bg-background">
       <Navbar variant="auth" />
 
-      <div className="container mx-auto flex min-h-[calc(100vh-64px)] items-center justify-center px-4 py-12">
+      <div className="container mx-auto flex min-h-[calc(100vh-64px)] items-center justify-center px-4 py-8 sm:py-12">
         <div className="grid w-full max-w-5xl gap-8 lg:grid-cols-2">
           {/* Left Panel - Image */}
           <div className="relative hidden overflow-hidden rounded-2xl lg:block">
@@ -80,112 +117,134 @@ export function SignIn () {
                 Reserve Your Academic Space
               </h2>
               <p className="text-white/90">
-                Manage classroom and laboratory bookings efficiently for the upcoming semester. Secure your spot in just a few clicks.
+                Manage classroom and laboratory bookings efficiently. Secure
+                your spot in just a few clicks.
               </p>
             </div>
           </div>
 
           {/* Right Panel - Form */}
-          <div className="flex flex-col justify-center rounded-2xl border border-border bg-card p-8 shadow-card">
-            <div className="mb-8">
-              <h1 className="mb-2 text-2xl font-bold text-foreground">Welcome back</h1>
-              <p className="text-muted-foreground">Please enter your details to sign in.</p>
+          <div className="flex flex-col justify-center rounded-2xl border border-border bg-card p-6 sm:p-8 shadow-card">
+            <div className="mb-6 sm:mb-8">
+              <h1 className="mb-2 text-2xl font-bold text-foreground">
+                Welcome back
+              </h1>
+              <p className="text-sm text-muted-foreground">
+                Please enter your details to sign in.
+              </p>
             </div>
 
-            <form onSubmit={handleSubmit} className="space-y-6">
+            <form
+              onSubmit={handleSubmit(onSubmit)}
+              className="space-y-4 sm:space-y-6"
+            >
+              {/* Email Field */}
               <div>
-                {/* Display messages to the user */}
-                {errorMessage && <div className="error-banner">{errorMessage}</div>}
-                {successMessage && <div className="success-banner">{successMessage}</div>}
-                {/* <Label className="mb-2 block text-sm font-medium">I am a...</Label>
-                <div className="grid grid-cols-3 gap-2 rounded-lg border border-border p-1">
-                  {roles.map((role) => (
-                    <button
-                      key={role.value}
-                      type="button"
-                      onClick={() => setSelectedRole(role.value)}
-                      className={`rounded-md px-4 py-2 text-sm font-medium transition-colors ${selectedRole === role.value
-                          ? 'bg-primary/10 text-primary'
-                          : 'text-muted-foreground hover:bg-muted'
-                        }`}
-                    >
-                      {role.label}
-                    </button>
-                  ))}
-                </div> */}
-              </div>
-
-              <div>
-                <Label htmlFor="email"> Email</Label>
+                <Label htmlFor="email">Email</Label>
                 <div className="relative mt-1.5">
                   <Input
                     id="email"
-                    type="text"
+                    type="email"
                     placeholder="e.g. abc@gmail.com"
-                    value={formData.email}
-                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                     className="pr-10"
+                    {...register("email")}
+                    aria-invalid={errors.email ? "true" : "false"}
                   />
                   <User className="absolute right-3 top-1/2 h-5 w-5 -translate-y-1/2 text-muted-foreground" />
                 </div>
+                {errors.email && (
+                  <p className="mt-1.5 text-sm text-destructive flex items-center gap-1">
+                    <AlertCircle className="h-3.5 w-3.5" />
+                    {errors.email.message}
+                  </p>
+                )}
               </div>
 
+              {/* Password Field */}
               <div>
                 <Label htmlFor="password">Password</Label>
                 <div className="relative mt-1.5">
                   <Input
                     id="password"
-                    type={showPassword ? 'text' : 'password'}
+                    type={showPassword ? "text" : "password"}
                     placeholder="••••••••"
-                    value={formData.password}
-                    onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                     className="pr-10"
+                    {...register("password")}
+                    aria-invalid={errors.password ? "true" : "false"}
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
                     className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                    aria-label={
+                      showPassword ? "Hide password" : "Show password"
+                    }
                   >
-                    {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                    {showPassword ? (
+                      <EyeOff className="h-5 w-5" />
+                    ) : (
+                      <Eye className="h-5 w-5" />
+                    )}
                   </button>
                 </div>
+                {errors.password && (
+                  <p className="mt-1.5 text-sm text-destructive flex items-center gap-1">
+                    <AlertCircle className="h-3.5 w-3.5" />
+                    {errors.password.message}
+                  </p>
+                )}
               </div>
 
-              <div className="flex items-center justify-between">
+              {/* Remember Me & Forgot Password */}
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                 <div className="flex items-center gap-2">
                   <Checkbox
                     id="remember"
-                    checked={formData.rememberMe}
-                    onCheckedChange={(checked) => setFormData({ ...formData, rememberMe: checked as boolean })}
+                    checked={rememberMe}
+                    onCheckedChange={(checked) =>
+                      setRememberMe(checked as boolean)
+                    }
                   />
-                  <label htmlFor="remember" className="text-sm text-muted-foreground">
+                  <label
+                    htmlFor="remember"
+                    className="text-sm text-muted-foreground cursor-pointer"
+                    onClick={() => setRememberMe(!rememberMe)}
+                  >
                     Remember me
                   </label>
                 </div>
-                <Link to="/forgot-password" className="text-sm font-medium text-primary hover:underline">
+                <Link
+                  to="/forgot-password"
+                  className="text-sm font-medium text-primary hover:underline"
+                >
                   Forgot password?
                 </Link>
               </div>
 
-              <Button type="submit" disabled={loading} className="w-full" size="lg">
-                {/* Sign In */}
-                {loading ? "Verifying..." : "Login"}
-              </Button>
+              {/* Submit Button */}
+              <LoadingButton
+                type="submit"
+                loading={loading}
+                loadingText="Signing in..."
+                className="w-full"
+                size="lg"
+              >
+                Sign In
+              </LoadingButton>
             </form>
 
-            <p className="mt-6 text-center text-sm text-muted-foreground">
-              Having trouble?{' '}
-              <Link to="/contact" className="font-medium text-primary hover:underline">
-                Contact IT Support
-              </Link>
-            </p>
+            {/* Support Link */}
+            <div className="text-center text-sm text-muted-foreground">
+              Official Uva Wellassa University Portal
+            </div>
 
+            {/* Footer */}
             <p className="mt-8 text-center text-xs text-muted-foreground">
-              © 2023 University Booking System. All rights reserved.
+              © 2026 Uva Wellassa University of Sri Lanka.
             </p>
           </div>
         </div>
       </div>
     </div>
   );
-};
+}

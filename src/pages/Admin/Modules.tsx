@@ -30,7 +30,7 @@ export function AdminModules() {
   const [modules, setModules] = useState<CourseModule[]>([]);
   const [filteredModules, setFilteredModules] = useState<CourseModule[]>([]);
   const [loading, setLoading] = useState(false);
-  
+
   // Search and Dropdown States
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<Degree[]>([]);
@@ -59,7 +59,7 @@ export function AdminModules() {
   const uniqueDegrees = Array.from(
     new Set(
       modules
-        .map(m => m.module_details?.degreeProgram)
+        .map(m => m.degree_details?.degreeProgram)
         .filter(Boolean)
     )
   ).sort();
@@ -72,6 +72,7 @@ export function AdminModules() {
       setLoading(true);
       try {
         const moduleData = await moduleService.getAllModules();
+        console.log("Fetched Modules:", moduleData);
         setModules(moduleData);
         setFilteredModules(moduleData); // Initialize filtered data
       } catch (error: any) {
@@ -96,7 +97,7 @@ export function AdminModules() {
       result = result.filter(module =>
         module.module_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         module.module_code.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        module.module_details?.degreeProgram?.toLowerCase().includes(searchTerm.toLowerCase())
+        module.degree_details?.degreeProgram?.toLowerCase().includes(searchTerm.toLowerCase())
       );
     }
 
@@ -108,7 +109,7 @@ export function AdminModules() {
 
     // Apply degree filter
     if (degreeFilter !== "all") {
-      result = result.filter(module => module.module_details?.degreeProgram === degreeFilter);
+      result = result.filter(module => module.degree_details?.degreeProgram === degreeFilter);
     }
 
     setFilteredModules(result);
@@ -172,13 +173,13 @@ export function AdminModules() {
     try {
       const { degree_name, ...payload } = formData;
       const response = await moduleService.updateModule(selectedModule.id, payload);
-      console.log(response,"dfdfdfd")
+      console.log(response, "dfdfdfd")
       const updatedModuleWithDetails = {
-      ...response,
-      degree_details: {
-        degreeProgram: formData.degree_name // Use the name from our form state
-      }
-    };
+        ...response,
+        degree_details: {
+          degreeProgram: formData.degree_name // Use the name from our form state
+        }
+      };
       setModules((prev) => prev.map((m) => (m.id === response.id ? updatedModuleWithDetails : m)));
       toast({ title: "Module updated", description: "Updated successfully." });
       setIsEditOpen(false);
@@ -208,9 +209,9 @@ export function AdminModules() {
       module_code: module.module_code,
       credit: module.credit,
       degree: module.degree,
-      degree_name: module.module_details?.degreeProgram || ""
+      degree_name: module.degree_details?.degreeProgram || ""
     });
-    setQuery(module.module_details?.degreeProgram || "");
+    setQuery(module.degree_details?.degreeProgram || "");
     setIsEditOpen(true);
   };
 
@@ -237,7 +238,7 @@ export function AdminModules() {
     { key: "module_code", header: "Code" },
     { key: "module_name", header: "Module Name" },
     { key: "credit", header: "Credits", render: (item) => <Badge variant="outline">{item.credit} credits</Badge> },
-    { key: "degree_details.degreeProgram", header: "Degree Program", render: (item) => <span className="text-muted-foreground">{item.module_details?.degreeProgram || "N/A"}</span> },
+    { key: "degree_details.degreeProgram", header: "Degree Program", render: (item) => <span className="text-muted-foreground">{item.degree_details ? item.degree_details.degreeProgram : "N/A"}</span> },
     {
       key: "actions", header: "Actions", render: (item) => (
         <div className="flex items-center gap-1">
@@ -254,11 +255,11 @@ export function AdminModules() {
 
   return (
     <div className="space-y-6">
-      <PageHeader 
-        title="Course Modules" 
-        description="Manage course modules across all degree programs." 
-        actionLabel="Add Module" 
-        onAction={() => setIsCreateOpen(true)} 
+      <PageHeader
+        title="Course Modules"
+        description="Manage course modules across all degree programs."
+        actionLabel="Add Module"
+        onAction={() => setIsCreateOpen(true)}
       />
 
       {/* Filter and Search Section */}
@@ -352,22 +353,22 @@ export function AdminModules() {
       </div>
 
       {/* Data Table */}
-      <DataTable 
-        data={filteredModules} 
-        columns={columns} 
-        searchKey="module_name" 
-        searchPlaceholder="Search modules..." 
-        emptyMessage="No modules found." 
-        // loading={loading}
+      <DataTable
+        data={filteredModules}
+        columns={columns}
+        searchKey="module_name"
+        searchPlaceholder="Search modules..."
+        emptyMessage="No modules found."
+      // loading={loading}
       />
 
       {/* Create/Edit Dialog */}
-      <Dialog open={isCreateOpen || isEditOpen} onOpenChange={(open) => { 
-        if (!open) { 
-          setIsCreateOpen(false); 
-          setIsEditOpen(false); 
-          resetForm(); 
-        } 
+      <Dialog open={isCreateOpen || isEditOpen} onOpenChange={(open) => {
+        if (!open) {
+          setIsCreateOpen(false);
+          setIsEditOpen(false);
+          resetForm();
+        }
       }}>
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
@@ -394,21 +395,21 @@ export function AdminModules() {
             {/* SEARCHABLE DROPDOWN FOR DEGREE */}
             <div className="grid gap-2 relative" ref={dropdownRef}>
               <Label>Degree Program</Label>
-              <Input 
-                placeholder="Type to search degree..." 
-                value={query} 
+              <Input
+                placeholder="Type to search degree..."
+                value={query}
                 onChange={(e) => {
-                    setQuery(e.target.value);
-                    if(formData.degree !== 0) setFormData({...formData, degree: 0, degree_name: ""});
+                  setQuery(e.target.value);
+                  if (formData.degree !== 0) setFormData({ ...formData, degree: 0, degree_name: "" });
                 }}
                 onFocus={() => query.length > 0 && setIsDropdownOpen(true)}
               />
-              
+
               {isDropdownOpen && (
                 <div className="absolute top-[70px] left-0 w-full z-50 bg-popover border rounded-md shadow-md max-h-[200px] overflow-auto">
                   {results.map((degree) => (
-                    <div 
-                      key={degree.id} 
+                    <div
+                      key={degree.id}
                       className="flex items-center justify-between p-2 hover:bg-accent cursor-pointer text-sm"
                       onClick={() => handleSelectDegree(degree)}
                     >

@@ -19,10 +19,7 @@ export interface CourseModule {
   credit: number;
   degree: number;
   staff_name: string;
-  module_details?: {
-    degreeProgram: string;
-    level: string;
-  };
+  degree_details: Degree;
   created_at: string;
 }
 
@@ -43,7 +40,7 @@ export interface Staff {
   id: number;
   email: string;
   full_name: string;
-  role: "admin" | "lecturer" | "lab_instructor" | "assistant" | "staff" ;
+  role: "admin" | "staff";
   is_active: boolean;
   created_at: string;
 }
@@ -51,11 +48,36 @@ export interface Staff {
 // Staff Assignment types
 export interface StaffAssignment {
   id: number;
-  module: number;
+  course_module: number;
   module_name?: string;
   staff: number;
   staff_name?: string;
-  role: "Lead Lecturer" | "Assistant" | "Lab Instructor";
+  role: "Lecturer" | "Demonstrator";
+}
+
+
+export interface StaffModuleAssignment {
+  id: number;
+  role: string;
+  module_details: CourseModule;
+  assigned_at: string;
+  staff_name: string;
+}
+
+export interface TimetableSlot {
+  id: number;
+  degree: number;
+  degree_name?: string; // For display
+  module: number;
+  module_code?: string; // Added for display
+  module_name?: string; // For display
+  lab: number | null;
+  lab_name?: string; // For display
+  lab_code?: string; // Added for display
+  slot_date: string;
+  day_of_week: number;
+  time_range: string;
+  note?: string;
 }
 
 // API Response types
