@@ -85,7 +85,7 @@ export function TimetableFilters({ degrees, onSearch, loading }: TimetableFilter
                                     <SelectItem key={degree.id} value={degree.id.toString()}>
                                         <span className="font-medium">{degree.degreeProgram}</span>
                                         <span className="text-muted-foreground ml-2">
-                                            | Level {degree.level} | Sem {degree.semester} | {degree.academicYear}
+                                            {/* | Level {degree.level} | Sem {degree.semester} | {degree.academicYear} */}
                                         </span>
                                     </SelectItem>
                                 ))}
