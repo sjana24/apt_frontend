@@ -58,6 +58,8 @@ export default function Profile() {
 
   const handlePasswordChange = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    // Validate passwords match
     if (passwords.new !== passwords.confirm) {
       toast({
         title: "Error",
@@ -67,18 +69,53 @@ export default function Profile() {
       return;
     }
 
+    // Validate password length
+    if (passwords.new.length < 8) {
+      toast({
+        title: "Error",
+        description: "Password must be at least 8 characters long",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Validate password contains letters and numbers
+    if (!/[A-Za-z]/.test(passwords.new) || !/\d/.test(passwords.new)) {
+      toast({
+        title: "Error",
+        description: "Password must contain both letters and numbers",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setUpdating(true);
     try {
-      await userService.changePassword(passwords.old, passwords.new);
+      const result = await userService.changePassword(
+        passwords.old,
+        passwords.new,
+      );
       toast({
         title: "Success",
-        description: "Password updated successfully",
+        description: result.message || "Password updated successfully",
       });
       setPasswords({ old: "", new: "", confirm: "" });
     } catch (error: any) {
+      console.error("Full error object:", error);
+      console.error("Error response:", error.response);
+      console.error("Error message:", error.message);
+
+      let errorMessage = "Failed to update password";
+
+      if (error.response?.data?.error) {
+        errorMessage = error.response.data.error;
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+
       toast({
         title: "Error",
-        description: error.response?.data?.error || "Failed to update password",
+        description: errorMessage,
         variant: "destructive",
       });
     } finally {
