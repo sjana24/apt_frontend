@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Eye, EyeOff, User, AlertCircle } from "lucide-react";
 import { useForm } from "react-hook-form";
@@ -26,6 +26,11 @@ export function SignIn() {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
+
+  // Clear any stale tokens when component mounts to prevent GuestGuard redirect issues
+  useEffect(() => {
+    storage.clear();
+  }, []);
 
   const {
     register,
