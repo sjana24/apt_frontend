@@ -119,7 +119,7 @@ export function StaffLabs() {
   // =========================
   // FILTER AND SORT - Memoized
   // =========================
-  useMemo(() => {
+  useEffect(() => {
     let result = [...labs];
 
     // Apply search filter

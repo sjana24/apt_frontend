@@ -40,7 +40,6 @@ const roleColors: Record<Staff["role"], "default" | "secondary" | "outline"> = {
 export function AdminStaffPage() {
   const [staff, setStaff] = useState<Staff[]>([]);
   const [loading, setLoading] = useState(false);
-  const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [isViewOpen, setIsViewOpen] = useState(false);
   const [selectedStaff, setSelectedStaff] = useState<Staff | null>(null);
@@ -83,20 +82,8 @@ export function AdminStaffPage() {
   }, []);
 
   // =========================
-  // CREATE / EDIT / DELETE
+  // EDIT / DELETE
   // =========================
-  const handleCreate = async () => {
-    try {
-      const response = await staffService.createStaff(formData);
-      setStaff((prev) => [...prev, response]);
-      toast({ title: "Staff created", description: `${response.full_name} added.` });
-      setIsCreateOpen(false);
-      resetForm();
-    } catch (error: any) {
-      toast({ title: "Error", description: "Failed to create staff", variant: "destructive" });
-    }
-  };
-
   const handleEdit = async () => {
     if (!selectedStaff) return;
     try {
@@ -220,17 +207,15 @@ export function AdminStaffPage() {
       <PageHeader
         title="Staff Management"
         description="Manage teaching personnel, roles, and system access."
-        actionLabel="Add Staff"
-        onAction={() => setIsCreateOpen(true)}
       />
 
       <DataTable data={staff} columns={columns} searchKey="full_name" />
 
-      {/* CREATE/EDIT DIALOG */}
-      <Dialog open={isCreateOpen || isEditOpen} onOpenChange={(open) => { if (!open) { setIsCreateOpen(false); setIsEditOpen(false); resetForm(); } }}>
+      {/* EDIT DIALOG */}
+      <Dialog open={isEditOpen} onOpenChange={(open) => { if (!open) { setIsEditOpen(false); resetForm(); } }}>
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
-            <DialogTitle>{isEditOpen ? "Edit Staff member" : "Add New Staff"}</DialogTitle>
+            <DialogTitle>Edit Staff Member</DialogTitle>
           </DialogHeader>
           <div className="grid gap-4 py-4">
             <div className="grid gap-2">
@@ -257,7 +242,7 @@ export function AdminStaffPage() {
             </div>
           </div>
           <DialogFooter>
-            <Button onClick={isEditOpen ? handleEdit : handleCreate}>{isEditOpen ? "Save Changes" : "Add Staff"}</Button>
+            <Button onClick={handleEdit}>Save Changes</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

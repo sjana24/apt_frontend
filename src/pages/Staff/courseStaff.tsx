@@ -27,6 +27,8 @@ import {
 import { toast } from "@/hooks/use-toast";
 import { format, parseISO, compareDesc } from "date-fns";
 import moduleService from "@/services/admin/courseModules.service";
+import assignmentService from "@/services/admin/assignment.service";
+import degreeService from "@/services/admin/degree.service";
 import { FilterOptions } from "@/interfaces";
 import { StaffModuleAssignment } from "@/types/indexAdmin";
 
@@ -57,7 +59,7 @@ export function StaffModules() {
   // Filter and sort states
   const [filterOptions, setFilterOptions] = useState<FilterOptions>({
     roles: [],
-    degrees: [],
+    degreePrograms: [],
     levels: [],
     semesters: [],
     minCredits: 1,
@@ -105,28 +107,32 @@ export function StaffModules() {
         setAssignments(sortedData);
         setFilteredAssignments(sortedData);
 
-        // Extract unique degrees from assignments for filter dropdown
-        const uniqueDegrees = Array.from(
-          new Map(
-            sortedData
-              .map((item) => item.module_details.degree_details)
-              .map((degree) => [degree.id, degree]),
-          ).values(),
-        );
-
-        // Transform to Degree type if needed
-        const degreeOptions: Degree[] = uniqueDegrees.map((deg) => ({
-          id: deg.id,
-          degreeProgram: deg.degreeProgram,
-          level: deg.level,
-          semester: deg.semester,
-          academicYear: deg.academicYear,
-          // Add other required Degree properties
-          duration: 4, // Default
-          status: "active",
-        }));
-
-        setDegrees(degreeOptions);
+        // Fetch all degrees from the database for the filter
+        try {
+          const allDegrees = await degreeService.getAllDegrees();
+          
+          // Get unique degree program names only (no duplicates for different levels/semesters)
+          const uniqueProgramsMap = new Map<string, Degree>();
+          allDegrees.forEach((degree: Degree) => {
+            if (!uniqueProgramsMap.has(degree.degreeProgram)) {
+              uniqueProgramsMap.set(degree.degreeProgram, degree);
+            }
+          });
+          
+          const uniqueDegrees = Array.from(uniqueProgramsMap.values()).sort((a, b) =>
+            a.degreeProgram.localeCompare(b.degreeProgram)
+          );
+          
+          console.log('Unique degree programs:', uniqueDegrees);
+          setDegrees(uniqueDegrees);
+        } catch (degreeError) {
+          console.error('Error fetching degrees:', degreeError);
+          toast({
+            title: "Warning",
+            description: "Could not load degree programs for filter",
+            variant: "default",
+          });
+        }
       } catch (error: any) {
         console.error("Error fetching data:", error);
         toast({
@@ -145,7 +151,7 @@ export function StaffModules() {
   // =========================
   // FILTER AND SORT - Memoized
   // =========================
-  useMemo(() => {
+  useEffect(() => {
     let result = [...assignments];
 
     // Apply search filter
@@ -170,9 +176,9 @@ export function StaffModules() {
     }
 
     // Apply degree filter
-    if (filterOptions.degrees.length > 0) {
+    if (filterOptions.degreePrograms.length > 0) {
       result = result.filter((item) =>
-        filterOptions.degrees.includes(item.module_details.degree_details.id),
+        filterOptions.degreePrograms.includes(item.module_details.degree_details.degreeProgram),
       );
     }
 
@@ -354,7 +360,8 @@ export function StaffModules() {
   const handleDelete = useCallback(
     async (assignment: StaffModuleAssignment) => {
       try {
-        await moduleService.deleteModule(assignment.module_details.id);
+        // Delete the assignment, not the module
+        await assignmentService.deleteAssignment(assignment.id);
 
         // Update state by removing the deleted item
         setAssignments((prev) => {
@@ -366,14 +373,14 @@ export function StaffModules() {
 
         toast({
           title: "Assignment removed",
-          description: `${assignment.module_details.module_name} has been unassigned.`,
-          variant: "destructive",
+          description: `${assignment.module_details.module_name} has been unassigned from you.`,
+          variant: "default",
         });
       } catch (error: any) {
         toast({
           title: "Error",
           description:
-            error.response?.data?.message || "Failed to remove assignment",
+            error.response?.data?.error || error.response?.data?.message || "Failed to remove assignment",
           variant: "destructive",
         });
       }
@@ -397,12 +404,12 @@ export function StaffModules() {
   );
 
   const handleDegreeFilterChange = useCallback(
-    (degreeId: number, checked: boolean) => {
+    (programName: string, checked: boolean) => {
       setFilterOptions((prev) => ({
         ...prev,
-        degrees: checked
-          ? [...prev.degrees, degreeId]
-          : prev.degrees.filter((id) => id !== degreeId),
+        degreePrograms: checked
+          ? [...prev.degreePrograms, programName]
+          : prev.degreePrograms.filter((name) => name !== programName),
       }));
     },
     [],
@@ -435,7 +442,7 @@ export function StaffModules() {
   const handleClearFilters = useCallback(() => {
     setFilterOptions({
       roles: [],
-      degrees: [],
+      degreePrograms: [],
       levels: [],
       semesters: [],
       minCredits: 1,
@@ -570,7 +577,7 @@ export function StaffModules() {
           onClick={handleClearFilters}
           disabled={
             !filterOptions.roles.length &&
-            !filterOptions.degrees.length &&
+            !filterOptions.degreePrograms.length &&
             !filterOptions.levels.length &&
             !filterOptions.semesters.length &&
             filterOptions.minCredits === 1 &&
@@ -615,18 +622,18 @@ export function StaffModules() {
             </Label>
             <div className="space-y-1 max-h-32 overflow-y-auto">
               {degrees.map((degree) => (
-                <div key={degree.id} className="flex items-center">
+                <div key={degree.degreeProgram} className="flex items-center">
                   <input
                     type="checkbox"
-                    id={`degree-${degree.id}`}
-                    checked={filterOptions.degrees.includes(degree.id)}
+                    id={`degree-${degree.degreeProgram}`}
+                    checked={filterOptions.degreePrograms.includes(degree.degreeProgram)}
                     onChange={(e) =>
-                      handleDegreeFilterChange(degree.id, e.target.checked)
+                      handleDegreeFilterChange(degree.degreeProgram, e.target.checked)
                     }
                     className="mr-2"
                   />
                   <Label
-                    htmlFor={`degree-${degree.id}`}
+                    htmlFor={`degree-${degree.degreeProgram}`}
                     className="text-sm truncate"
                   >
                     {degree.degreeProgram}
@@ -827,7 +834,7 @@ export function StaffModules() {
 
       {/* Active Filters Badges */}
       {(filterOptions.roles.length > 0 ||
-        filterOptions.degrees.length > 0 ||
+        filterOptions.degreePrograms.length > 0 ||
         filterOptions.levels.length > 0 ||
         filterOptions.semesters.length > 0 ||
         filterOptions.minCredits > 1 ||
@@ -844,22 +851,17 @@ export function StaffModules() {
               </button>
             </Badge>
           ))}
-          {filterOptions.degrees.map((degreeId) => {
-            const degree = degrees.find((d) => d.id === degreeId);
-            return (
-              degree && (
-                <Badge key={degreeId} variant="secondary">
-                  Degree: {degree.degreeProgram}
-                  <button
-                    onClick={() => handleDegreeFilterChange(degreeId, false)}
-                    className="ml-1 hover:text-destructive"
-                  >
-                    ×
-                  </button>
-                </Badge>
-              )
-            );
-          })}
+          {filterOptions.degreePrograms.map((programName) => (
+            <Badge key={programName} variant="secondary">
+              Degree: {programName}
+              <button
+                onClick={() => handleDegreeFilterChange(programName, false)}
+                className="ml-1 hover:text-destructive"
+              >
+                ×
+              </button>
+            </Badge>
+          ))}
           {filterOptions.levels.map((level) => (
             <Badge key={level} variant="secondary">
               Level: {level}
