@@ -68,7 +68,7 @@ export interface CreateTimetableSlotData {
 // Filter options type
 export interface FilterOptions {
     roles: string[];
-    degrees: number[];
+    degreePrograms: string[];  // Changed from degrees: number[] to use program names
     levels: string[];
     semesters: string[];
     minCredits: number;
