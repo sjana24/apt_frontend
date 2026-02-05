@@ -110,7 +110,7 @@ export function StaffModules() {
         // Fetch all degrees from the database for the filter
         try {
           const allDegrees = await degreeService.getAllDegrees();
-          
+
           // Get unique degree program names only (no duplicates for different levels/semesters)
           const uniqueProgramsMap = new Map<string, Degree>();
           allDegrees.forEach((degree: Degree) => {
@@ -118,15 +118,15 @@ export function StaffModules() {
               uniqueProgramsMap.set(degree.degreeProgram, degree);
             }
           });
-          
-          const uniqueDegrees = Array.from(uniqueProgramsMap.values()).sort((a, b) =>
-            a.degreeProgram.localeCompare(b.degreeProgram)
+
+          const uniqueDegrees = Array.from(uniqueProgramsMap.values()).sort(
+            (a, b) => a.degreeProgram.localeCompare(b.degreeProgram),
           );
-          
-          console.log('Unique degree programs:', uniqueDegrees);
+
+          console.log("Unique degree programs:", uniqueDegrees);
           setDegrees(uniqueDegrees);
         } catch (degreeError) {
-          console.error('Error fetching degrees:', degreeError);
+          console.error("Error fetching degrees:", degreeError);
           toast({
             title: "Warning",
             description: "Could not load degree programs for filter",
@@ -178,7 +178,9 @@ export function StaffModules() {
     // Apply degree filter
     if (filterOptions.degreePrograms.length > 0) {
       result = result.filter((item) =>
-        filterOptions.degreePrograms.includes(item.module_details.degree_details.degreeProgram),
+        filterOptions.degreePrograms.includes(
+          item.module_details.degree_details.degreeProgram,
+        ),
       );
     }
 
@@ -380,7 +382,9 @@ export function StaffModules() {
         toast({
           title: "Error",
           description:
-            error.response?.data?.error || error.response?.data?.message || "Failed to remove assignment",
+            error.response?.data?.error ||
+            error.response?.data?.message ||
+            "Failed to remove assignment",
           variant: "destructive",
         });
       }
@@ -622,21 +626,26 @@ export function StaffModules() {
             </Label>
             <div className="space-y-1 max-h-32 overflow-y-auto">
               {degrees.map((degree) => (
-                <div key={degree.degreeProgram} className="flex items-center">
+                <div key={degree.id} className="flex items-center">
                   <input
                     type="checkbox"
-                    id={`degree-${degree.degreeProgram}`}
-                    checked={filterOptions.degreePrograms.includes(degree.degreeProgram)}
+                    id={`degree-${degree.id}`}
+                    checked={filterOptions.degreePrograms.includes(
+                      degree.degreeProgram,
+                    )}
                     onChange={(e) =>
-                      handleDegreeFilterChange(degree.degreeProgram, e.target.checked)
+                      handleDegreeFilterChange(
+                        degree.degreeProgram,
+                        e.target.checked,
+                      )
                     }
                     className="mr-2"
                   />
                   <Label
-                    htmlFor={`degree-${degree.degreeProgram}`}
+                    htmlFor={`degree-${degree.id}`}
                     className="text-sm truncate"
                   >
-                    {degree.degreeProgram}
+                    {degree.degreeProgram} (L{degree.level})
                   </Label>
                 </div>
               ))}

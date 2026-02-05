@@ -1,5 +1,8 @@
 import { useEffect, useState, useMemo, useCallback } from "react";
-import { DataTable, Column } from "@/components/adminComponents/shared/DataTable";
+import {
+  DataTable,
+  Column,
+} from "@/components/adminComponents/shared/DataTable";
 import { Lab } from "@/types/indexAdmin";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -19,7 +22,7 @@ import {
   Calendar,
   Users,
   Search,
-  X
+  X,
 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { format, parseISO, compareDesc } from "date-fns";
@@ -28,7 +31,13 @@ import { TimeTableSlotLabStaff } from "@/components/TimeTableSlotLabStaff";
 import { getWeekRange } from "@/middleware/getWeek";
 
 // Sort options type
-type SortOption = "latest" | "oldest" | "name_asc" | "name_desc" | "capacity_asc" | "capacity_desc";
+type SortOption =
+  | "latest"
+  | "oldest"
+  | "name_asc"
+  | "name_desc"
+  | "capacity_asc"
+  | "capacity_desc";
 
 export function StaffLabs() {
   // State declarations
@@ -47,7 +56,9 @@ export function StaffLabs() {
   const [sortBy, setSortBy] = useState<SortOption>("latest");
   const [searchQuery, setSearchQuery] = useState("");
   const [showFilters, setShowFilters] = useState(false);
-  const [capacityRange, setCapacityRange] = useState<[number, number]>([1, 100]);
+  const [capacityRange, setCapacityRange] = useState<[number, number]>([
+    1, 100,
+  ]);
   const [selectedCapacity, setSelectedCapacity] = useState<number | null>(null);
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
 
@@ -67,7 +78,7 @@ export function StaffLabs() {
 
         // Sort by updated_at (newest first) initially
         const sortedData = [...data].sort((a, b) =>
-          compareDesc(parseISO(a.updated_at), parseISO(b.updated_at))
+          compareDesc(parseISO(a.updated_at), parseISO(b.updated_at)),
         );
 
         setLabs(sortedData);
@@ -75,12 +86,11 @@ export function StaffLabs() {
 
         // Calculate capacity range from data
         if (sortedData.length > 0) {
-          const capacities = sortedData.map(lab => lab.capacity);
+          const capacities = sortedData.map((lab) => lab.capacity);
           const minCapacity = Math.min(...capacities);
           const maxCapacity = Math.max(...capacities);
           setCapacityRange([minCapacity, maxCapacity]);
         }
-
       } catch (error: any) {
         toast({
           title: "Error",
@@ -125,19 +135,17 @@ export function StaffLabs() {
     // Apply search filter
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase();
-      result = result.filter(lab =>
-        lab.name.toLowerCase().includes(query)
-      );
+      result = result.filter((lab) => lab.name.toLowerCase().includes(query));
     }
 
     // Apply capacity filter
     if (selectedCapacity !== null) {
-      result = result.filter(lab => lab.capacity === selectedCapacity);
+      result = result.filter((lab) => lab.capacity === selectedCapacity);
     } else {
       // Apply capacity range filter
-      result = result.filter(lab =>
-        lab.capacity >= capacityRange[0] &&
-        lab.capacity <= capacityRange[1]
+      result = result.filter(
+        (lab) =>
+          lab.capacity >= capacityRange[0] && lab.capacity <= capacityRange[1],
       );
     }
 
@@ -168,11 +176,9 @@ export function StaffLabs() {
   // EXTRACT UNIQUE CAPACITIES - Memoized
   // =========================
   const uniqueCapacities = useMemo(() => {
-    const capacities = Array.from(new Set(labs.map(lab => lab.capacity)));
+    const capacities = Array.from(new Set(labs.map((lab) => lab.capacity)));
     return capacities.sort((a, b) => a - b);
   }, [labs]);
-
-
 
   // =========================
   // FILTER HANDLERS
@@ -206,56 +212,52 @@ export function StaffLabs() {
     // openExplorer(degree); // Open the explorer popup
     setSelectedLab(lab);
     setIsDateDialogOpen(true);
-
   };
-
 
   // =========================
   // TABLE COLUMNS
   // =========================
-  const columns: Column<Lab>[] = useMemo(() => [
-    {
-      key: "lab_code",
-      header: "Lab Code",
-      render: (item) => (
-        <div>
-          <div className="font-medium">{item.lab_code}</div>
-          <div className="text-xs text-muted-foreground">
+  const columns: Column<Lab>[] = useMemo(
+    () => [
+      {
+        key: "lab_code",
+        header: "Lab Code",
+        render: (item) => (
+          <div>
+            <div className="font-medium">{item.lab_code}</div>
+            <div className="text-xs text-muted-foreground"></div>
           </div>
-        </div>
-      )
-    },
-    {
-      key: "name",
-      header: "Lab Name",
-      render: (item) => (
-        <div>
-          <div className="font-medium">{item.name}</div>
-          <div className="text-xs text-muted-foreground">
+        ),
+      },
+      {
+        key: "name",
+        header: "Lab Name",
+        render: (item) => (
+          <div>
+            <div className="font-medium">{item.name}</div>
+            <div className="text-xs text-muted-foreground"></div>
           </div>
-        </div>
-      )
-    },
-    {
-      key: "capacity",
-      header: "Capacity",
-      render: (item) => (
-        <Badge variant="secondary">
-          {item.capacity} seats
-        </Badge>
-      ),
-    },
-    {
-      key: "updated_at",
-      header: "Last Updated",
-      render: (item) => (
-        <div className="text-sm text-muted-foreground">
-          {format(parseISO(item.updated_at), "MMM d, yyyy")}
-        </div>
-      ),
-    },
-
-  ], [openEdit]);
+        ),
+      },
+      {
+        key: "capacity",
+        header: "Capacity",
+        render: (item) => (
+          <Badge variant="secondary">{item.capacity} seats</Badge>
+        ),
+      },
+      {
+        key: "updated_at",
+        header: "Last Updated",
+        render: (item) => (
+          <div className="text-sm text-muted-foreground">
+            {format(parseISO(item.updated_at), "MMM d, yyyy")}
+          </div>
+        ),
+      },
+    ],
+    [openEdit],
+  );
 
   // =========================
   // FILTER COMPONENT
@@ -268,7 +270,12 @@ export function StaffLabs() {
           variant="ghost"
           size="sm"
           onClick={handleClearFilters}
-          disabled={!searchQuery && selectedCapacity === null && capacityRange[0] === 1 && capacityRange[1] === 100}
+          disabled={
+            !searchQuery &&
+            selectedCapacity === null &&
+            capacityRange[0] === 1 &&
+            capacityRange[1] === 100
+          }
         >
           Clear All
         </Button>
@@ -288,7 +295,9 @@ export function StaffLabs() {
                 min={1}
                 max={500}
                 value={capacityRange[0]}
-                onChange={(e) => setCapacityRange([parseInt(e.target.value), capacityRange[1]])}
+                onChange={(e) =>
+                  setCapacityRange([parseInt(e.target.value), capacityRange[1]])
+                }
                 className="flex-1"
               />
               <span className="text-xs text-muted-foreground">Max</span>
@@ -299,7 +308,12 @@ export function StaffLabs() {
                 min={1}
                 max={500}
                 value={capacityRange[0]}
-                onChange={(e) => setCapacityRange([parseInt(e.target.value) || 1, capacityRange[1]])}
+                onChange={(e) =>
+                  setCapacityRange([
+                    parseInt(e.target.value) || 1,
+                    capacityRange[1],
+                  ])
+                }
                 className="w-24"
               />
               <span className="text-muted-foreground">to</span>
@@ -308,7 +322,12 @@ export function StaffLabs() {
                 min={1}
                 max={500}
                 value={capacityRange[1]}
-                onChange={(e) => setCapacityRange([capacityRange[0], parseInt(e.target.value) || 100])}
+                onChange={(e) =>
+                  setCapacityRange([
+                    capacityRange[0],
+                    parseInt(e.target.value) || 100,
+                  ])
+                }
                 className="w-24"
               />
               <span className="text-sm text-muted-foreground">seats</span>
@@ -319,7 +338,9 @@ export function StaffLabs() {
         {/* Quick Capacity Filter */}
         {uniqueCapacities.length > 0 && (
           <div>
-            <Label className="text-sm font-medium mb-2 block">Quick Capacity Filter</Label>
+            <Label className="text-sm font-medium mb-2 block">
+              Quick Capacity Filter
+            </Label>
             <div className="flex flex-wrap gap-2">
               <Button
                 variant={selectedCapacity === null ? "default" : "outline"}
@@ -328,10 +349,12 @@ export function StaffLabs() {
               >
                 All
               </Button>
-              {uniqueCapacities.slice(0, 8).map(capacity => (
+              {uniqueCapacities.slice(0, 8).map((capacity) => (
                 <Button
                   key={capacity}
-                  variant={selectedCapacity === capacity ? "default" : "outline"}
+                  variant={
+                    selectedCapacity === capacity ? "default" : "outline"
+                  }
                   size="sm"
                   onClick={() => setSelectedCapacity(capacity)}
                 >
@@ -350,7 +373,6 @@ export function StaffLabs() {
   // =========================
   return (
     <div className="space-y-6">
-
       {/* Search and Filter Bar */}
       <div className="flex flex-col sm:flex-row gap-4">
         <div className="flex-1 relative">
@@ -378,11 +400,18 @@ export function StaffLabs() {
             <DropdownMenuTrigger asChild>
               <Button variant="outline" className="gap-2">
                 <ArrowUpDown className="h-4 w-4" />
-                Sort: {sortBy === "latest" ? "Latest First" :
-                  sortBy === "oldest" ? "Oldest First" :
-                    sortBy === "name_asc" ? "A → Z" :
-                      sortBy === "name_desc" ? "Z → A" :
-                        sortBy === "capacity_asc" ? "Low Capacity" : "High Capacity"}
+                Sort:{" "}
+                {sortBy === "latest"
+                  ? "Latest First"
+                  : sortBy === "oldest"
+                    ? "Oldest First"
+                    : sortBy === "name_asc"
+                      ? "A → Z"
+                      : sortBy === "name_desc"
+                        ? "Z → A"
+                        : sortBy === "capacity_asc"
+                          ? "Low Capacity"
+                          : "High Capacity"}
                 <ChevronDown className="h-4 w-4" />
               </Button>
             </DropdownMenuTrigger>
@@ -435,7 +464,10 @@ export function StaffLabs() {
           >
             <Filter className="h-4 w-4" />
             Filters
-            {(searchQuery || selectedCapacity !== null || capacityRange[0] > 1 || capacityRange[1] < 100) && (
+            {(searchQuery ||
+              selectedCapacity !== null ||
+              capacityRange[0] > 1 ||
+              capacityRange[1] < 100) && (
               <Badge variant="secondary" className="ml-1 h-5 w-5 p-0">
                 !
               </Badge>
@@ -448,7 +480,10 @@ export function StaffLabs() {
       {showFilters && <FilterPanel />}
 
       {/* Active Filters Badges */}
-      {(searchQuery || selectedCapacity !== null || capacityRange[0] > 1 || capacityRange[1] < 100) && (
+      {(searchQuery ||
+        selectedCapacity !== null ||
+        capacityRange[0] > 1 ||
+        capacityRange[1] < 100) && (
         <div className="flex flex-wrap gap-2">
           {searchQuery && (
             <Badge variant="secondary">
@@ -472,17 +507,18 @@ export function StaffLabs() {
               </button>
             </Badge>
           )}
-          {(capacityRange[0] > 1 || capacityRange[1] < 100) && selectedCapacity === null && (
-            <Badge variant="secondary">
-              Range: {capacityRange[0]} - {capacityRange[1]} seats
-              <button
-                onClick={() => setCapacityRange([1, 100])}
-                className="ml-1 hover:text-destructive"
-              >
-                ×
-              </button>
-            </Badge>
-          )}
+          {(capacityRange[0] > 1 || capacityRange[1] < 100) &&
+            selectedCapacity === null && (
+              <Badge variant="secondary">
+                Range: {capacityRange[0]} - {capacityRange[1]} seats
+                <button
+                  onClick={() => setCapacityRange([1, 100])}
+                  className="ml-1 hover:text-destructive"
+                >
+                  ×
+                </button>
+              </Badge>
+            )}
         </div>
       )}
 
@@ -491,7 +527,9 @@ export function StaffLabs() {
         <div className="flex items-center justify-center p-8">
           <div className="text-center">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
-            <p className="mt-2 text-sm text-muted-foreground">Loading laboratories...</p>
+            <p className="mt-2 text-sm text-muted-foreground">
+              Loading laboratories...
+            </p>
           </div>
         </div>
       ) : (
@@ -509,23 +547,31 @@ export function StaffLabs() {
           {labs.length > 0 && (
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
               <div className="rounded-lg border p-4">
-                <div className="text-sm font-medium text-muted-foreground">Total Labs</div>
+                <div className="text-sm font-medium text-muted-foreground">
+                  Total Labs
+                </div>
                 <div className="text-2xl font-bold mt-1">{labs.length}</div>
               </div>
               <div className="rounded-lg border p-4">
-                <div className="text-sm font-medium text-muted-foreground">Available Labs</div>
+                <div className="text-sm font-medium text-muted-foreground">
+                  Available Labs
+                </div>
                 <div className="text-2xl font-bold mt-1">
-                  {labs.filter(lab => lab.availability).length}
+                  {labs.filter((lab) => lab.availability).length}
                 </div>
               </div>
               <div className="rounded-lg border p-4">
-                <div className="text-sm font-medium text-muted-foreground">Total Capacity</div>
+                <div className="text-sm font-medium text-muted-foreground">
+                  Total Capacity
+                </div>
                 <div className="text-2xl font-bold mt-1">
                   {labs.reduce((sum, lab) => sum + lab.capacity, 0)}
                 </div>
               </div>
               <div className="rounded-lg border p-4">
-                <div className="text-sm font-medium text-muted-foreground">Showing</div>
+                <div className="text-sm font-medium text-muted-foreground">
+                  Showing
+                </div>
                 <div className="text-2xl font-bold mt-1">
                   {filteredLabs.length}
                 </div>

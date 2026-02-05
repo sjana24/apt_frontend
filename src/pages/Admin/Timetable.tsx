@@ -185,7 +185,7 @@ export function AdminTimetable() {
                     </SelectTrigger>
                     <SelectContent>
                         {degrees.map(d => (
-                            <SelectItem key={d.id} value={String(d.id)}>{d.degreeProgram}</SelectItem>
+                            <SelectItem key={d.id} value={String(d.id)}>{d.degreeProgram} (L{d.level})</SelectItem>
                         ))}
                     </SelectContent>
                 </Select>
@@ -210,7 +210,7 @@ export function AdminTimetable() {
                                 <Select value={String(formData.degree)} onValueChange={(v) => setFormData({ ...formData, degree: parseInt(v) })}>
                                     <SelectTrigger><SelectValue placeholder="Select Degree" /></SelectTrigger>
                                     <SelectContent>
-                                        {degrees.map(d => <SelectItem key={d.id} value={String(d.id)}>{d.degreeProgram}</SelectItem>)}
+                                        {degrees.map(d => <SelectItem key={d.id} value={String(d.id)}>{d.degreeProgram} (L{d.level})</SelectItem>)}
                                     </SelectContent>
                                 </Select>
                             </div>
