@@ -122,7 +122,11 @@ export function AdminAssignments() {
   const handleEditRole = async () => {
     if (!selectedAssignment) return;
     try {
+      if (!selectedAssignment) return;
+
       const updated = await assignmentService.updateAssignment(selectedAssignment.id, {
+        staff: selectedAssignment.staff,
+        course_module: selectedAssignment.course_module,
         role: formData.role,
       });
 
@@ -336,6 +340,7 @@ export function AdminAssignments() {
                 <SelectContent className="bg-popover">
                   {staffList
                     .filter((s) => s.is_active)
+                    .filter((s) => !moduleAssignments.some((assignment) => assignment.staff === s.id))
                     .map((staff) => (
                       <SelectItem key={staff.id} value={String(staff.id)}>
                         {staff.full_name}
