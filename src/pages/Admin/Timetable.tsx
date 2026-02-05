@@ -180,10 +180,10 @@ export function AdminTimetable() {
             <div className="bg-white p-4 rounded-lg border flex items-center gap-4">
                 <Label>Select Degree Program:</Label>
                 <Select value={selectedDegree ? String(selectedDegree) : ""} onValueChange={(v) => setSelectedDegree(parseInt(v))}>
-                    <SelectTrigger className="w-[300px]">
+                    <SelectTrigger className="w-[400px]">
                         <SelectValue placeholder="Select a degree..." />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent className="max-h-[300px]">
                         {degrees.map(d => (
                             <SelectItem key={d.id} value={String(d.id)}>{d.degreeProgram} (L{d.level})</SelectItem>
                         ))}

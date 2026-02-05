@@ -71,16 +71,7 @@ const timeTableService = {
     },
 
     // 4. Update an existing degree
-    // updateDegree: async (id, data) => {
-    //     try {
-    //         console.log("xxxxxxxxxxxxxxxxxx",data);
-    //         const response = await axiosInstance.put(`main/degree/${id}`, data);
-    //         return response.data;
-    //     } catch (error) {
-    //         console.error(`Error updating degree ${id}:`, error.response?.data || error.message);
-    //         throw error;
-    //     }
-    // },
+
 
     // // 5. Delete a deleteTimetableSlot
     deleteTimetableSlot: async (id) => {

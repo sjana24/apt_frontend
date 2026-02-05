@@ -17,10 +17,8 @@ interface TimetableFiltersProps {
 }
 
 export function TimetableFilters({ degrees, onSearch, loading }: TimetableFiltersProps) {
-    // Local states for cascading selection
-    const [selectedProgram, setSelectedProgram] = useState<string>("");
-    const [selectedLevel, setSelectedLevel] = useState<string>("");
-    const [selectedSemester, setSelectedSemester] = useState<string>("");
+    // Local state for the selected degree
+    const [selectedDegreeId, setSelectedDegreeId] = useState<string>("");
 
     const {
         register,
@@ -34,40 +32,11 @@ export function TimetableFilters({ degrees, onSearch, loading }: TimetableFilter
         },
     });
 
-    // Get unique degree programs
-    const uniquePrograms = Array.from(new Set(degrees.map(d => d.degreeProgram)));
+    const handleDegreeChange = (degreeIdStr: string) => {
+        const degreeId = parseInt(degreeIdStr);
+        setSelectedDegreeId(degreeIdStr);
 
-    // Filtered levels based on selection
-    const availableLevels = selectedProgram
-        ? Array.from(new Set(degrees.filter(d => d.degreeProgram === selectedProgram).map(d => d.level))).sort()
-        : [];
-
-    // Filtered semesters based on program + level selection
-    const availableSemesters = (selectedProgram && selectedLevel)
-        ? Array.from(new Set(degrees.filter(d => d.degreeProgram === selectedProgram && d.level === selectedLevel).map(d => d.semester))).sort()
-        : [];
-
-    const handleProgramChange = (program: string) => {
-        setSelectedProgram(program);
-        setSelectedLevel("");
-        setSelectedSemester("");
-        setValue("degree", 0);
-    };
-
-    const handleLevelChange = (level: string) => {
-        setSelectedLevel(level);
-        setSelectedSemester("");
-        setValue("degree", 0);
-    };
-
-    const handleSemesterChange = (semester: string) => {
-        setSelectedSemester(semester);
-
-        const degree = degrees.find(d =>
-            d.degreeProgram === selectedProgram &&
-            d.level === selectedLevel &&
-            d.semester === semester
-        );
+        const degree = degrees.find(d => d.id === degreeId);
 
         if (degree) {
             setValue("degree", degree.id);
@@ -80,7 +49,7 @@ export function TimetableFilters({ degrees, onSearch, loading }: TimetableFilter
         if (!data.degree) {
             toast({
                 title: "Incomplete Selection",
-                description: "Please select Program, Level, and Semester.",
+                description: "Please select a Degree.",
                 variant: "destructive"
             });
             return;
@@ -101,73 +70,27 @@ export function TimetableFilters({ degrees, onSearch, loading }: TimetableFilter
         <Card className="w-full max-w-4xl mx-auto border-0 shadow-none bg-transparent">
             <CardContent className="p-0">
                 <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
-                    {/* Program Selection */}
+                    {/* Degree Selection */}
                     <div className="space-y-3">
-                        <Label htmlFor="program" className="flex items-center gap-2 text-sm font-bold uppercase tracking-wider text-muted-foreground">
+                        <Label htmlFor="degree" className="flex items-center gap-2 text-sm font-bold uppercase tracking-wider text-muted-foreground">
                             <GraduationCap className="h-4 w-4 text-primary" />
-                            Degree Program
+                            Select Degree
                         </Label>
-                        <Select onValueChange={handleProgramChange} value={selectedProgram}>
-                            <SelectTrigger className="mt-1.5 h-14 rounded-2xl border-white/20 bg-white/5 backdrop-blur-sm transition-all focus:ring-primary/20" id="program">
-                                <SelectValue placeholder="Select your degree program" />
+                        <Select onValueChange={handleDegreeChange} value={selectedDegreeId}>
+                            <SelectTrigger className="mt-1.5 h-14 rounded-2xl border-white/20 bg-white/5 backdrop-blur-sm transition-all focus:ring-primary/20" id="degree">
+                                <SelectValue placeholder="Select a degree..." />
                             </SelectTrigger>
-                            <SelectContent className="rounded-2xl border-white/20 bg-white/10 backdrop-blur-xl">
-                                {uniquePrograms.map((program) => (
-                                    <SelectItem key={program} value={program}>
-                                        {program}
+                            <SelectContent className="rounded-2xl border-white/20 bg-white/10 backdrop-blur-xl max-h-[300px]">
+                                {degrees.map((degree) => (
+                                    <SelectItem key={degree.id} value={degree.id.toString()}>
+                                        <span className="font-medium">{degree.degreeProgram}</span>
+                                        <span className="text-muted-foreground ml-2">
+                                            {/* | Level {degree.level} | Sem {degree.semester} | {degree.academicYear} */}
+                                        </span>
                                     </SelectItem>
                                 ))}
                             </SelectContent>
                         </Select>
-                    </div>
-
-                    {/* Level and Semester */}
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                        <div className="space-y-3">
-                            <Label htmlFor="level" className="flex items-center gap-2 text-sm font-bold uppercase tracking-wider text-muted-foreground">
-                                <School className="h-4 w-4 text-primary" />
-                                Academic Level
-                            </Label>
-                            <Select
-                                value={selectedLevel}
-                                onValueChange={handleLevelChange}
-                                disabled={!selectedProgram}
-                            >
-                                <SelectTrigger className="mt-1.5 h-14 rounded-2xl border-white/20 bg-white/5 backdrop-blur-sm" id="level">
-                                    <SelectValue placeholder={selectedProgram ? "Select level" : "Select program first"} />
-                                </SelectTrigger>
-                                <SelectContent className="rounded-2xl border-white/20 bg-white/10 backdrop-blur-xl">
-                                    {availableLevels.map((level) => (
-                                        <SelectItem key={level} value={level}>
-                                            Level {level}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                        </div>
-
-                        <div className="space-y-3">
-                            <Label htmlFor="semester" className="flex items-center gap-2 text-sm font-bold uppercase tracking-wider text-muted-foreground">
-                                <BookOpen className="h-4 w-4 text-primary" />
-                                Semester
-                            </Label>
-                            <Select
-                                value={selectedSemester}
-                                onValueChange={handleSemesterChange}
-                                disabled={!selectedLevel}
-                            >
-                                <SelectTrigger className="mt-1.5 h-14 rounded-2xl border-white/20 bg-white/5 backdrop-blur-sm" id="semester">
-                                    <SelectValue placeholder={selectedLevel ? "Select semester" : "Select level first"} />
-                                </SelectTrigger>
-                                <SelectContent className="rounded-2xl border-white/20 bg-white/10 backdrop-blur-xl">
-                                    {availableSemesters.map((sem) => (
-                                        <SelectItem key={sem} value={sem}>
-                                            Semester {sem}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                        </div>
                     </div>
 
                     {/* Week Selection */}
