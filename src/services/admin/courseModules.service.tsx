@@ -44,7 +44,7 @@ const moduleService = {
         } catch (error) {
             console.error(`Error updating module ${id}:`, error.response?.data || error.message);
             throw error;
-        }
+        }5
     },
 
     // 5. DELETE MODULE

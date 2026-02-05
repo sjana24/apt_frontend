@@ -1,6 +1,9 @@
 import { useEffect, useState } from "react";
 import { PageHeader } from "@/components/adminComponents/shared/PageHeader";
-import { DataTable, Column } from "@/components/adminComponents/shared/DataTable";
+import {
+  DataTable,
+  Column,
+} from "@/components/adminComponents/shared/DataTable";
 import { Staff } from "@/types/indexAdmin";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -29,12 +32,12 @@ import staffService from "@/services/admin/staff.service";
 
 const roleLabels: Record<Staff["role"], string> = {
   admin: "Admin",
-  staff: "Staff"
+  staff: "Staff",
 };
 
 const roleColors: Record<Staff["role"], "default" | "secondary" | "outline"> = {
   admin: "default",
-  staff: "outline"
+  staff: "outline",
 };
 
 export function AdminStaffPage() {
@@ -59,12 +62,14 @@ export function AdminStaffPage() {
       try {
         const data = await staffService.getAllStaff();
         // Get current user ID from session storage
-        const currentUserId = sessionStorage.getItem('userId');
+        const currentUserId = sessionStorage.getItem("userId");
 
         // Filter out the current user if they are an admin
         // (Assuming you want to hide THE current user, regardless of role, though they must be admin to see this page)
         const filteredData = currentUserId
-          ? data.filter((member: Staff) => member.id.toString() !== currentUserId)
+          ? data.filter(
+              (member: Staff) => member.id.toString() !== currentUserId,
+            )
           : data;
 
         setStaff(filteredData);
@@ -87,13 +92,25 @@ export function AdminStaffPage() {
   const handleEdit = async () => {
     if (!selectedStaff) return;
     try {
-      const response = await staffService.updateStaff(selectedStaff.id, formData);
-      setStaff((prev) => prev.map((s) => (s.id === response.id ? response : s)));
-      toast({ title: "Staff updated", description: "Changes saved successfully." });
+      const response = await staffService.updateStaff(
+        selectedStaff.id,
+        formData,
+      );
+      setStaff((prev) =>
+        prev.map((s) => (s.id === response.id ? response : s)),
+      );
+      toast({
+        title: "Staff updated",
+        description: "Changes saved successfully.",
+      });
       setIsEditOpen(false);
       resetForm();
     } catch (error: any) {
-      toast({ title: "Error", description: "Update failed", variant: "destructive" });
+      toast({
+        title: "Error",
+        description: "Update failed",
+        variant: "destructive",
+      });
     }
   };
 
@@ -117,13 +134,19 @@ export function AdminStaffPage() {
         ...member,
         is_active: newStatus,
       });
-      setStaff((prev) => prev.map((s) => (s.id === response.id ? response : s)));
+      setStaff((prev) =>
+        prev.map((s) => (s.id === response.id ? response : s)),
+      );
       toast({
         title: "Status Updated",
         description: `${member.full_name} is now ${newStatus ? "Active" : "Inactive"}.`,
       });
     } catch (error) {
-      toast({ title: "Error", description: "Status change failed", variant: "destructive" });
+      toast({
+        title: "Error",
+        description: "Status change failed",
+        variant: "destructive",
+      });
     }
   };
 
@@ -157,13 +180,20 @@ export function AdminStaffPage() {
     {
       key: "role",
       header: "Role",
-      render: (item) => <Badge variant={roleColors[item.role]}>{roleLabels[item.role]}</Badge>,
+      render: (item) => (
+        <Badge variant={roleColors[item.role]}>{roleLabels[item.role]}</Badge>
+      ),
     },
     {
       key: "is_active",
       header: "Status",
       render: (item) => (
-        <Badge variant={item.is_active ? "default" : "secondary"} className={item.is_active ? "bg-green-100 text-green-700 border-green-200" : ""}>
+        <Badge
+          variant={item.is_active ? "default" : "secondary"}
+          className={
+            item.is_active ? "bg-green-100 text-green-700 border-green-200" : ""
+          }
+        >
           {item.is_active ? "Active" : "Inactive"}
         </Badge>
       ),
@@ -174,7 +204,14 @@ export function AdminStaffPage() {
       render: (item) => (
         <div className="flex items-center gap-1">
           {/* VIEW ACTION */}
-          <Button variant="ghost" size="icon" onClick={(e) => { e.stopPropagation(); openView(item); }}>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={(e) => {
+              e.stopPropagation();
+              openView(item);
+            }}
+          >
             <Eye className="h-4 w-4 text-blue-500" />
           </Button>
 
@@ -182,14 +219,26 @@ export function AdminStaffPage() {
           <Button
             variant="ghost"
             size="icon"
-            onClick={(e) => { e.stopPropagation(); handleToggleStatus(item); }}
+            onClick={(e) => {
+              e.stopPropagation();
+              handleToggleStatus(item);
+            }}
             title={item.is_active ? "Deactivate" : "Activate"}
           >
-            <Power className={`h-4 w-4 ${item.is_active ? "text-amber-500" : "text-green-500"}`} />
+            <Power
+              className={`h-4 w-4 ${item.is_active ? "text-amber-500" : "text-green-500"}`}
+            />
           </Button>
 
           {/* EDIT ACTION */}
-          <Button variant="ghost" size="icon" onClick={(e) => { e.stopPropagation(); openEdit(item); }}>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={(e) => {
+              e.stopPropagation();
+              openEdit(item);
+            }}
+          >
             <Pencil className="h-4 w-4" />
           </Button>
 
@@ -212,7 +261,15 @@ export function AdminStaffPage() {
       <DataTable data={staff} columns={columns} searchKey="full_name" />
 
       {/* EDIT DIALOG */}
-      <Dialog open={isEditOpen} onOpenChange={(open) => { if (!open) { setIsEditOpen(false); resetForm(); } }}>
+      <Dialog
+        open={isEditOpen}
+        onOpenChange={(open) => {
+          if (!open) {
+            setIsEditOpen(false);
+            resetForm();
+          }
+        }}
+      >
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
             <DialogTitle>Edit Staff Member</DialogTitle>
@@ -220,16 +277,34 @@ export function AdminStaffPage() {
           <div className="grid gap-4 py-4">
             <div className="grid gap-2">
               <Label>Full Name</Label>
-              <Input value={formData.full_name} onChange={(e) => setFormData({ ...formData, full_name: e.target.value })} />
+              <Input
+                value={formData.full_name}
+                onChange={(e) =>
+                  setFormData({ ...formData, full_name: e.target.value })
+                }
+              />
             </div>
             <div className="grid gap-2">
               <Label>Email</Label>
-              <Input type="email" value={formData.email} onChange={(e) => setFormData({ ...formData, email: e.target.value })} />
+              <Input
+                type="email"
+                value={formData.email}
+                onChange={(e) =>
+                  setFormData({ ...formData, email: e.target.value })
+                }
+              />
             </div>
             <div className="grid gap-2">
               <Label>Role</Label>
-              <Select value={formData.role} onValueChange={(v) => setFormData({ ...formData, role: v as Staff["role"] })}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
+              <Select
+                value={formData.role}
+                onValueChange={(v) =>
+                  setFormData({ ...formData, role: v as Staff["role"] })
+                }
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="admin">Admin</SelectItem>
                   <SelectItem value="staff">Staff</SelectItem>
@@ -238,7 +313,12 @@ export function AdminStaffPage() {
             </div>
             <div className="flex items-center justify-between border p-2 rounded-md">
               <Label>Active Account</Label>
-              <Switch checked={formData.is_active} onCheckedChange={(c) => setFormData({ ...formData, is_active: c })} />
+              <Switch
+                checked={formData.is_active}
+                onCheckedChange={(c) =>
+                  setFormData({ ...formData, is_active: c })
+                }
+              />
             </div>
           </div>
           <DialogFooter>
@@ -265,20 +345,30 @@ export function AdminStaffPage() {
               </div>
               <div className="grid grid-cols-2 gap-2 border-b pb-2">
                 <span className="font-semibold">Role:</span>
-                <Badge variant={roleColors[selectedStaff.role]}>{roleLabels[selectedStaff.role]}</Badge>
+                <Badge variant={roleColors[selectedStaff.role]}>
+                  {roleLabels[selectedStaff.role]}
+                </Badge>
               </div>
               <div className="grid grid-cols-2 gap-2 border-b pb-2">
                 <span className="font-semibold">Status:</span>
-                <span>{selectedStaff.is_active ? "✅ Active" : "❌ Inactive"}</span>
+                <span>
+                  {selectedStaff.is_active ? "✅ Active" : "❌ Inactive"}
+                </span>
               </div>
               <div className="grid grid-cols-2 gap-2">
                 <span className="font-semibold">Member Since:</span>
-                <span>{selectedStaff.created_at ? format(new Date(selectedStaff.created_at), "PPP") : "N/A"}</span>
+                <span>
+                  {selectedStaff.created_at
+                    ? format(new Date(selectedStaff.created_at), "PPP")
+                    : "N/A"}
+                </span>
               </div>
             </div>
           )}
           <DialogFooter>
-            <Button variant="outline" onClick={() => setIsViewOpen(false)}>Close</Button>
+            <Button variant="outline" onClick={() => setIsViewOpen(false)}>
+              Close
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

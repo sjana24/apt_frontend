@@ -466,11 +466,43 @@ export function TimeTableSlotLabStaff({
       console.error("Full error:", err);
       console.error("Error response:", err.response?.data);
 
-      const errorMessage =
-        err.response?.data?.message ||
-        JSON.stringify(err.response?.data) ||
-        err.message ||
-        "Failed to create timetable slot";
+      // Extract error message from various possible error formats
+      let errorMessage = "Failed to create timetable slot";
+      
+      if (err.response?.data) {
+        const errorData = err.response.data;
+        
+        // Check for non_field_errors first (validation errors raised as strings)
+        if (errorData.non_field_errors) {
+          errorMessage = Array.isArray(errorData.non_field_errors) 
+            ? errorData.non_field_errors[0] 
+            : errorData.non_field_errors;
+        } else if (errorData.detail) {
+          errorMessage = errorData.detail;
+        } else if (errorData.degree) {
+          errorMessage = Array.isArray(errorData.degree) ? errorData.degree[0] : errorData.degree;
+        } else if (errorData.lab) {
+          errorMessage = Array.isArray(errorData.lab) ? errorData.lab[0] : errorData.lab;
+        } else if (errorData.message) {
+          errorMessage = errorData.message;
+        } else if (typeof errorData === 'string') {
+          errorMessage = errorData;
+        } else if (Array.isArray(errorData)) {
+          errorMessage = errorData[0];
+        } else {
+          // Try to get any field error
+          const keys = Object.keys(errorData);
+          if (keys.length > 0) {
+            const firstKey = keys[0];
+            const val = errorData[firstKey];
+            errorMessage = Array.isArray(val) ? val[0] : val;
+          } else {
+            errorMessage = JSON.stringify(errorData);
+          }
+        }
+      } else if (err.message) {
+        errorMessage = err.message;
+      }
 
       setError(errorMessage);
       toast({
